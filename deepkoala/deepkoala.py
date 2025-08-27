@@ -203,7 +203,3 @@ if __name__ == '__main__':
     parser.add_argument('--output_format', '-of', default='simple', choices=['simple', 'detail'], type=str, help='Output detail level: simple (default) or detail')
     args = parser.parse_args()
     inference(args.input_path, args.output_path, args.mode, args.date, args.batch_size, args.num_workers, args.output_format)
-
-
-#An ultra-fast and accurate tool for KEGG Orthology (KO) assignment, powered by deep learning.
-
