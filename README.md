@@ -1,4 +1,5 @@
-DeepKOALA: An ultra-fast and accurate tool for KEGG Orthology (KO) assignment, powered by deep learning.
+# DeepKOALA
+**An ultra-fast and accurate tool for KEGG Orthology (KO) assignment, powered by deep learning.**
 
 **DeepKoala** is a deep learning–based and high-performance protein annotation tool that rapidly predicts the functions of input protein sequences, classifying them according to the **KEGG Orthology (KO)** system.  
 
