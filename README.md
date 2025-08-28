@@ -73,19 +73,21 @@ pip install -r requirements.txt
 ```
 
 > [!WARNING]
-> **For GPU Users:**
-> 1. Open `requirements.txt`, comment out the `torch` line using a `#`, and run `pip install -r requirements.txt` to install all other packages first.
+> **For GPU Users (Manual PyTorch Installation Required):**
+> 1. First, prepare the dependency file. Open `requirements.txt, comment out the line for `torch` by adding a `#` at the beginning, and save the file.
 > ```txt
 > numpy==1.26.3
 > pandas==2.2.2
-> # torch==2.4.1 # comment out PyTorch
+> # torch==2.4.1
 > tqdm==4.66.4
 > ```
-> 2. Run nvidia-smi to find the maximum CUDA version your driver supports.
-> 3. Visit the [Official PyTorch Website](https://pytorch.org/) to find the command for a compatible version (must be less than or equal to your driver's).
-> 4. Copy the full command from the website and run it in your terminal to install the GPU-enabled version of PyTorch. For example:
+> 2. Next, install all other dependencies by running the following command:
 > ```bash
-> # Install PyTorch 2.4.1 with GPU Support
+> pip install -r requirements.txt
+> ```
+> 3. Check your system's GPU compatibility. Run `nvidia-smi` to find the maximum CUDA Version your driver supports.
+> 4. Finally, install a compatible PyTorch version. Visit the [Official PyTorch Website](https://pytorch.org/), find the command for a CUDA version that is less than or equal to your driver's, and run it. For example, install PyTorch 2.4.1 with GPU Support:
+> ```bash
 > pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cu121
 > ```
 
