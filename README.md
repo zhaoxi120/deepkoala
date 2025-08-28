@@ -73,7 +73,7 @@ pip install -r requirements.txt
 ```
 
 > [!WARNING]
-> #### For GPU Users:
+> **For GPU Users:**
 > 1. Run `nvidia-smi` in your terminal to find the maximum CUDA Version your driver supports.
 > 2. Visit the [Official PyTorch Website](https://pytorch.org/) and select a CUDA platform that is less than or equal to your driver's version limit.
 > 3. Open the `requirements.txt` file and replace the existing `torch` line with the compatible version you just found. 
