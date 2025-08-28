@@ -74,14 +74,19 @@ pip install -r requirements.txt
 
 > [!WARNING]
 > **For GPU Users:**
-> 1. Run `nvidia-smi` in your terminal to find the maximum CUDA Version your driver supports.
-> 2. Visit the [Official PyTorch Website](https://pytorch.org/) and select a CUDA platform that is less than or equal to your driver's version limit.
-> 3. Open the `requirements.txt` file and replace the existing `torch` line with the compatible version you just found. 
-> ```bash
+> 1. Open `requirements.txt`, comment out the `torch` line using a `#`, and run `pip install -r requirements.txt` to install all other packages first.
+> ```txt
 > numpy==1.26.3
 > pandas==2.2.2
-> torch==2.4.1+cu121 # replace this line
+> # torch==2.4.1 # comment out PyTorch
 > tqdm==4.66.4
+> ```
+> 2. Run nvidia-smi to find the maximum CUDA version your driver supports.
+> 3. Visit the [Official PyTorch Website](https://pytorch.org/) to find the command for a compatible version (must be less than or equal to your driver's).
+> 4. Copy the full command from the website and run it in your terminal to install the GPU-enabled version of PyTorch. For example:
+> ```bash
+> # Install PyTorch 2.4.1 with GPU Support
+> pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cu121
 > ```
 
 ### 4. Download Pre-trained Models
