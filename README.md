@@ -97,3 +97,22 @@ The pre-trained model file (version February 2025)  is already included in this 
 
 
 ## Usage
+
+### Basic Usage
+```bash
+python3 ./deepkoala/deepkoala.py -i my_proteins.fasta -o results.csv
+```
+
+
+* `--input_path` `-i`: 
+* `--output_path` `-o`: 
+* `--mode` `-m`
+  * `full_length`
+  * `metagenome` 
+* `--date` `-d`: default='new'
+* `--batch_size` `-bs`: default=64 
+* `--num_workers` `-nw`: default=0
+* `--output_format` `-of`
+  * `simple`
+  * `detail`
+
