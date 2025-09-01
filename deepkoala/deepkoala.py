@@ -29,10 +29,13 @@ class ProteinDataset(Dataset):
             return [entry for entry in entries if entry.strip()]
 
     def tokenize(self, sequence: str):
-        aa_vocab = {'<pad>': 0, '<unk>': 1, 'A': 2, 'C': 3, 'D': 4, 'E': 5, 
-                    'F': 6, 'G': 7, 'H': 8, 'I': 9, 'K': 10, 'L': 11, 
-                    'M': 12, 'N': 13, 'P': 14, 'Q': 15, 'R': 16, 'S': 17, 
-                    'T': 18, 'V': 19, 'W': 20, 'Y': 21}
+        sequence = sequence.upper()
+        aa_vocab = {
+            '<pad>': 0, '<unk>': 1, 'A': 2, 'C': 3, 'D': 4, 'E': 5,
+            'F': 6, 'G': 7, 'H': 8, 'I': 9, 'K': 10, 'L': 11,
+            'M': 12, 'N': 13, 'P': 14, 'Q': 15, 'R': 16, 'S': 17,
+            'T': 18, 'V': 19, 'W': 20, 'Y': 21
+        }
         return [aa_vocab.get(aa, 1) for aa in sequence]
 
     def __len__(self):
@@ -197,7 +200,10 @@ if __name__ == '__main__':
     parser.add_argument('--input_path', '-i', required=True, type=str, help='Input file path (fasta format)')
     parser.add_argument('--output_path', '-o', required=True, type=str, help='Output file path')
     parser.add_argument('--mode', '-m', default='full_length', choices=['full_length', 'metagenome'], type=str, help='Complete protein sequence or protein sequence in metagenome')
-    parser.add_argument('--date', '-d', default='latest', type=str, help='Specify the database version by month in the format YYYYMM')
+    parser.add_argument(
+        '--date', '-d', default='latest', type=str,
+        help="Specify the database version by month in the format YYYYMM or 'latest'"
+    )
     parser.add_argument('--batch_size', '-bs', default=64, type=int, help='Batch size')
     parser.add_argument('--num_workers', '-nw', default=0, type=int, help='DataLoader workers for inference')
     parser.add_argument('--output_format', '-of', default='simple', choices=['simple', 'detail'], type=str, help='Output detail level: simple (default) or detail')
