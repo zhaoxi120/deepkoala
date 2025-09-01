@@ -89,10 +89,10 @@ def load_ko_config(json_path):
     return ko2idx, idx2ko, thresholds
 
 
-def find_newest_date(date_str, folder_path):
+def find_latest_date(date_str, folder_path):
     yyyymm_pattern = re.compile(r'^\d{6}$')
 
-    if date_str == "new":
+    if date_str == "latest":
         candidates = [
             name for name in os.listdir(folder_path)
             if yyyymm_pattern.match(name) and os.path.isdir(os.path.join(folder_path, name))
@@ -113,7 +113,7 @@ def find_newest_date(date_str, folder_path):
             print(f"Error: Specified date directory '{date_str}' not found in '{folder_path}'")
             sys.exit(1)
     else:
-        print("Error: Invalid date format. Use 'YYYYMM' or 'new'.")
+        print("Error: Invalid date format. Use 'YYYYMM' or 'latest'.")
         sys.exit(1)
 
 
@@ -121,7 +121,7 @@ def find_newest_date(date_str, folder_path):
 def inference(input_path, output_path, mode, date, batch_size, num_workers, output_format):
 
     model_resources_path = './resources'
-    database_date = find_newest_date(date, model_resources_path)
+    database_date = find_latest_date(date, model_resources_path)
 
     ko_config_path = os.path.join(model_resources_path, f'{database_date}/ko_config_{mode}.json')
     weights_path = os.path.join(model_resources_path, f'{database_date}/weights_{mode}.pt')
@@ -197,7 +197,7 @@ if __name__ == '__main__':
     parser.add_argument('--input_path', '-i', required=True, type=str, help='Input file path (fasta format)')
     parser.add_argument('--output_path', '-o', required=True, type=str, help='Output file path')
     parser.add_argument('--mode', '-m', default='full_length', choices=['full_length', 'metagenome'], type=str, help='Complete protein sequence or protein sequence in metagenome')
-    parser.add_argument('--date', '-d', default='new', type=str, help='Specify the database version by month in the format YYYYMM')
+    parser.add_argument('--date', '-d', default='latest', type=str, help='Specify the database version by month in the format YYYYMM')
     parser.add_argument('--batch_size', '-bs', default=64, type=int, help='Batch size')
     parser.add_argument('--num_workers', '-nw', default=0, type=int, help='DataLoader workers for inference')
     parser.add_argument('--output_format', '-of', default='simple', choices=['simple', 'detail'], type=str, help='Output detail level: simple (default) or detail')
