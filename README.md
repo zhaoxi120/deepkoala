@@ -1,4 +1,5 @@
-# DeepKOALA(beta)
+# DeepKOALA
+### Beta Version
 **An ultra-fast and accurate tool for KEGG Orthology (KO) assignment, powered by deep learning.**
 
 ### Table of Contents
@@ -23,17 +24,15 @@ Built on a Gated Recurrent Unit (GRU) architecture, the tool provides excellent 
 
 ### Comparison with Mainstream Tools
 
-![image](https://github.com/zhaoxi120/deepkoala/blob/main/figures/comparison_with_traditional_tools.png)
+![image](./figures/comparison_with_traditional_tools.png)
 
 On an independent test set, DeepKOALA is up to **37.5 times faster** than BlastKOALA while maintaining a comparable or superior precision (84.13%) to tools like KofamScan (78.74%) and GhostKOALA (83.06%).
 
 ### Application on Metagenomic Datasets
 
-![image](https://github.com/zhaoxi120/deepkoala/blob/main/figures/comparison_metagenome.png)
+![image](./figures/comparison_metagenome.png)
 
 **`metagenome` mode** is optimized for fragmented sequences. It can annotate the 46 million proteins of the OM-RGC v2 catalog in approximately 30 minutes and additionally identifies over 1 million sequences missed by other mainstream tools.
-
-
 
 
 ## Installation
@@ -161,6 +160,6 @@ We will update this section with formal citation information as soon as it is av
 
 ## License
 
-This software is released under the MIT License.
+This software is released under the [MIT License](./LICENSE).
 
 
