@@ -25,13 +25,13 @@ Built on a Gated Recurrent Unit (GRU) architecture, the tool provides excellent 
 
 ![image](https://github.com/zhaoxi120/deepkoala/blob/main/figures/comparison_with_traditional_tools.png)
 
-On an independent test set , DeepKOALA is up to **37.5 times faster** than BlastKOALA while maintaining a comparable or superior precision (84.13% ) to tools like KofamScan (78.74% ) and GhostKOALA (83.06% ).
+On an independent test set, DeepKOALA is up to **37.5 times faster** than BlastKOALA while maintaining a comparable or superior precision (84.13%) to tools like KofamScan (78.74%) and GhostKOALA (83.06%).
 
 ### Application on Metagenomic Datasets
 
 ![image](https://github.com/zhaoxi120/deepkoala/blob/main/figures/comparison_metagenome.png)
 
-**`metagenome` mode** is optimized for fragmented sequences. It can annotate the 46 million proteins of the OM-RGC v2 catalog in approximately 30 minutes and uniquely identifies over 1 million sequences missed by other mainstream tools.
+**`metagenome` mode** is optimized for fragmented sequences. It can annotate the 46 million proteins of the OM-RGC v2 catalog in approximately 30 minutes and additionally identifies over 1 million sequences missed by other mainstream tools.
 
 
 
@@ -100,7 +100,7 @@ pip install -r requirements.txt
 
 ### 4. Download Pre-trained Models
 
-The pre-trained model file (version February 2025)  is already included in this beta version of the project. No separate download is required.
+The pre-trained model file (version February 2025) is already included in this beta version of the project. No separate download is required.
 
 
 ## Usage
@@ -134,7 +134,7 @@ python3 ./deepkoala/deepkoala.py -i metagenome.fasta -o detailed_results.csv --m
 * `--mode` `-m`: Sets the prediction model. (Default: `full_length`)
   * `full_length`: Standard model, optimized for complete protein sequences.
   * `metagenome`: Specialized model, trained to better handle fragmented sequences common in metagenomics.
-* `--date` `-d`: Specifies the version of the pre-trained model to use. (Default: `new`, which loads the latest available model).
+* `--date` `-d`: Specifies the version of the pre-trained model to use. (Default: `latest`, which loads the latest available model).
 * `--batch_size` `-bs`: Number of sequences to process in a single batch. Larger values can be faster on GPUs but use more memory. (Default: `64`).
 * `--num_workers` `-nw`: Number of worker processes for data loading. Can accelerate processing on some systems. (Default: `0`).
 * `--output_format` `-of`: Determines the columns in the output file. (Default: `simple`)
@@ -147,7 +147,7 @@ python3 ./deepkoala/deepkoala.py -i metagenome.fasta -o detailed_results.csv --m
     
   * `detail`: A comprehensive format that shows the top prediction for every sequence, its probability score, the required confidence threshold, and an asterisk (`*`) in the `annotate` column if the prediction is confident (`probability` >= `threshold`).
   
-       | name                     | predict_label | probability | threhsold | annotate |
+       | name                     | predict_label | probability | threshold | annotate |
        | :---:                    | :---:         | :---:       | :---:     | :---:    |
        | T04784_FRACYDRAFT_201661 | K25156        | 0.999643    | 0.659121  | *        |
        | T04784_FRACYDRAFT_233513 | K15259        | 0.689804    | 0.921019  |          |
