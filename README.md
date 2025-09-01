@@ -1,6 +1,13 @@
-# DeepKOALA
+# DeepKOALA(beta)
 **An ultra-fast and accurate tool for KEGG Orthology (KO) assignment, powered by deep learning.**
 
+### Table of Contents
+* [About the Project](#about-the-project)
+* [Performance](#performance)
+* [Installation](#installation)
+* [Usage](#usage)
+* [How to Cite](#how-to-cite)
+* [License](#license)
 
 ## About the Project
 **DeepKOALA** is a high-performance deep learning-based tool for rapid protein function annotation according to the **KEGG Orthology (KO)** system. By framing KO assignment as an open-set recognition problem, it can effectively distinguish between known and unknown functional sequences, thereby reducing false-positive annotations.
@@ -99,20 +106,61 @@ The pre-trained model file (version February 2025)  is already included in this 
 ## Usage
 
 ### Basic Usage
+
+The primary way to use DeepKOALA is via its command-line interface.
+
+```bash
+python3 ./deepkoala/deepkoala.py -i <input.fasta> -o <results.csv> [OPTIONS]
+```
+
+### Example
+
+To annotate a set of proteins using the default settings:
+
 ```bash
 python3 ./deepkoala/deepkoala.py -i my_proteins.fasta -o results.csv
 ```
 
+To annotate metagenomic genes using the specialized model and get a detailed output:
 
-* `--input_path` `-i`: 
-* `--output_path` `-o`: 
-* `--mode` `-m`
-  * `full_length`
-  * `metagenome` 
-* `--date` `-d`: default='new'
-* `--batch_size` `-bs`: default=64 
-* `--num_workers` `-nw`: default=0
-* `--output_format` `-of`
-  * `simple`
-  * `detail`
+```bash
+python3 ./deepkoala/deepkoala.py -i metagenome.fasta -o detailed_results.csv --mode metagenome --output_format detail
+```
+
+### Command-Line Options
+
+* `--input_path` `-i`: Path to the input protein FASTA file. **(Required)**
+* `--output_path` `-o`: Path for the output CSV results file. **(Required)**
+* `--mode` `-m`: Sets the prediction model. (Default: `full_length`)
+  * `full_length`: Standard model, optimized for complete protein sequences.
+  * `metagenome`: Specialized model, trained to better handle fragmented sequences common in metagenomics.
+* `--date` `-d`: Specifies the version of the pre-trained model to use. (Default: `new`, which loads the latest available model).
+* `--batch_size` `-bs`: Number of sequences to process in a single batch. Larger values can be faster on GPUs but use more memory. (Default: `64`).
+* `--num_workers` `-nw`: Number of worker processes for data loading. Can accelerate processing on some systems. (Default: `0`).
+* `--output_format` `-of`: Determines the columns in the output file. (Default: `simple`)
+  * `simple`: A concise format that only shows the predicted KO label (`predict_label`) for sequences that meet the confidence threshold. Other predictions are left blank.
+
+       | name                     | predict_label |
+       | :---:                    | :---:         |
+       | T04784_FRACYDRAFT_201661 | K25156        |
+       | T04784_FRACYDRAFT_233513 |               |
+    
+  * `detail`: A comprehensive format that shows the top prediction for every sequence, its probability score, the required confidence threshold, and an asterisk (`*`) in the `annotate` column if the prediction is confident (`probability` >= `threshold`).
+  
+       | name                     | predict_label | probability | threhsold | annotate |
+       | :---:                    | :---:         | :---:       | :---:     | :---:    |
+       | T04784_FRACYDRAFT_201661 | K25156        | 0.999643    | 0.659121  | *        |
+       | T04784_FRACYDRAFT_233513 | K15259        | 0.689804    | 0.921019  |          |
+
+
+## How to Cite
+
+The paper describing DeepKOALA is currently in preparation and will be published soon. In the meantime, if you use this software, please cite this GitHub repository.
+
+We will update this section with formal citation information as soon as it is available.
+
+## License
+
+This software is released under the MIT License.
+
 
