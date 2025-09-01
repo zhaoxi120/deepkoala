@@ -80,7 +80,7 @@ pip install -r requirements.txt
 
 > [!WARNING]
 > **For GPU Users (Manual PyTorch Installation Required):**
-> 1. First, prepare the dependency file. Open `requirements.txt, comment out the line for `torch` by adding a `#` at the beginning, and save the file.
+> 1. First, prepare the dependency file. Open `requirements.txt`, comment out the line for `torch` by adding a `#` at the beginning, and save the file.
 > ```txt
 > numpy==1.26.3
 > pandas==2.2.2
