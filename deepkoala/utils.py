@@ -10,6 +10,10 @@ def load_ko_config(json_path: str):
     return ko2idx, idx2ko, thresholds
 
 
+class DateResolveError(Exception): 
+    pass
+
+
 def find_latest_date(date_str: str, folder_path: str) -> str:
     pat = re.compile(r'^\d{6}$')
     if date_str == "latest":
