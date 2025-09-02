@@ -8,7 +8,7 @@ def main():
     p.add_argument('--mode','-m', default='full_length', choices=['full_length','metagenome'])
     p.add_argument('--date','-d', default='latest')
     p.add_argument('--batch_size','-bs', type=int, default=32)
-    p.add_argument('--num_workers','-nw', type=int, default=0)
+    p.add_argument('--num_workers','-nw', type=int, default=2)
     p.add_argument('--output_format','-of', default='simple', choices=['simple','detail'])
     args = p.parse_args()
     try:
