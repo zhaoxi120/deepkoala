@@ -8,9 +8,10 @@ from .utils import load_ko_config, find_latest_date
 
 def inference(input_path: str, output_path: str, mode: str="full_length",
               date: str="latest", batch_size: int=64, num_workers: int=0,
-              output_format: str="simple", resources_dir: str="./resources",
-              device: torch.device | None=None):
+              output_format: str="simple", device: torch.device | None=None):
+    
     device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    resources_dir = "./resources"
 
     db_date = find_latest_date(date, resources_dir)
     ko_cfg = Path(resources_dir)/db_date/f"ko_config_{mode}.json"
