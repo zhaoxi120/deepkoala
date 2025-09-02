@@ -64,7 +64,7 @@ source deepkoala_env/bin/activate
 
 For Windows users:
 ```bash
-python -m venv deepkoala_env
+python3 -m venv deepkoala_env
 .\deepkoala_env\Scripts\activate
 ```
 
@@ -109,7 +109,7 @@ The pre-trained model file (version February 2025) is already included in this b
 The primary way to use DeepKOALA is via its command-line interface.
 
 ```bash
-python3 ./deepkoala/deepkoala.py -i <input.fasta> -o <results.csv> [OPTIONS]
+python3 -m deepkoala.cli -i <input.fasta> -o <results.csv> [OPTIONS]
 ```
 
 ### Example
@@ -117,13 +117,13 @@ python3 ./deepkoala/deepkoala.py -i <input.fasta> -o <results.csv> [OPTIONS]
 To annotate a set of proteins using the default settings:
 
 ```bash
-python3 ./deepkoala/deepkoala.py -i my_proteins.fasta -o results.csv
+python3 -m deepkoala.cli -i my_proteins.fasta -o results.csv
 ```
 
 To annotate metagenomic genes using the specialized model and get a detailed output:
 
 ```bash
-python3 ./deepkoala/deepkoala.py -i metagenome.fasta -o detailed_results.csv --mode metagenome --output_format detail
+python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --mode metagenome --output_format detail
 ```
 
 ### Command-Line Options
@@ -134,7 +134,7 @@ python3 ./deepkoala/deepkoala.py -i metagenome.fasta -o detailed_results.csv --m
   * `full_length`: Standard model, optimized for complete protein sequences.
   * `metagenome`: Specialized model, trained to better handle fragmented sequences common in metagenomics.
 * `--date` `-d`: Specifies the version of the pre-trained model to use. (Default: `latest`, which loads the latest available model).
-* `--batch_size` `-bs`: Number of sequences to process in a single batch. Larger values can be faster on GPUs but use more memory. (Default: `64`).
+* `--batch_size` `-bs`: Number of sequences to process in a single batch. Larger values can be faster on GPUs but use more memory. (Default: `32`).
 * `--num_workers` `-nw`: Number of worker processes for data loading. Can accelerate processing on some systems. (Default: `0`).
 * `--output_format` `-of`: Determines the columns in the output file. (Default: `simple`)
   * `simple`: A concise format that only shows the predicted KO label (`predict_label`) for sequences that meet the confidence threshold. Other predictions are left blank.

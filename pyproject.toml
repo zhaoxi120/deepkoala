@@ -1,0 +1,10 @@
+[project]
+name = "deepkoala"
+version = "0.1-beta"
+requires-python = ">=3.9"
+
+[project.scripts]
+deepkoala = "deepkoala.cli:main"
+
+[tool.setuptools]
+packages = ["deepkoala"]
