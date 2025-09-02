@@ -45,8 +45,11 @@ def inference(input_path: str, output_path: str, mode: str="full_length",
                 ann_cnt += 1 if mark else 0
 
     df = pd.DataFrame({"name":names,"predict_label":labels,"probability":probs,"threshold":thrs,"annotate":ann})
+    
     if output_format == "simple":
         df.loc[df["annotate"] != "*", "predict_label"] = pd.NA
         df = df[["name","predict_label"]]
+    
+    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)
     return {"total": total, "annotated": ann_cnt, "output": str(output_path)}
