@@ -7,7 +7,7 @@ from .model import GRUClassifier
 from .utils import load_ko_config, find_latest_date
 
 def inference(input_path: str, output_path: str, mode: str="full_length",
-              date: str="latest", batch_size: int=64, num_workers: int=0,
+              date: str="latest", batch_size: int=64, num_workers: int=2,
               output_format: str="simple", device: torch.device | None=None):
     
     device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
