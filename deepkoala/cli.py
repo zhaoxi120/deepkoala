@@ -18,6 +18,7 @@ def main():
     p.add_argument(
         '--profiles_dir',
         '-pd',
+        default='',
         help='Directory containing KO-specific HMM profiles (precision mode only)',
     )
     args = p.parse_args()
