@@ -77,15 +77,18 @@ def _run_hmmsearch(hmm_file: Path, seq: str) -> Tuple[int | None, int | None]:
         fasta_path = tmp_fa.name
     with tempfile.NamedTemporaryFile("r") as domtbl:
         cmd = [
-            "hmmsearch",
-            "--domtblout",
-            domtbl.name,
-            str(hmm_file),
-            fasta_path,
+            f"hmmsearch --noali --domtblout {domtbl.name} {hmm_file} {fasta_path}"
         ]
         try:
-            subprocess.run(cmd, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            subprocess.run(
+                cmd,
+                check=True,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
         except FileNotFoundError:
+            print("hmmsearch not found; skipping boundary detection.")
             return None, None
         domtbl.seek(0)
         for line in domtbl:
