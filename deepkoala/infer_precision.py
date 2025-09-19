@@ -1,15 +1,3 @@
-"""Precision inference utilities combining GRUClassifier predictions with HMMER.
-
-This module exposes a high level :func:`inference_precision` function mirroring
-``deepkoala.infer.inference`` while implementing the iterative multi-domain
-refinement described in "precision mode". Sequences are initially annotated with
-:class:`~deepkoala.model.GRUClassifier`; predictions above their KO-specific
-threshold trigger a ``hmmsearch`` against a profile with the same KO name to
-pinpoint the domain boundaries. Annotated regions are removed from the fragment
-and the residual N- and C-terminal pieces longer than 50 amino acids are fed
-back into the queue until no qualifying fragment remains.
-"""
-
 from __future__ import annotations
 
 from dataclasses import dataclass
