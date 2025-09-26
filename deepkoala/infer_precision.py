@@ -20,9 +20,6 @@ __all__ = [
 ]
 
 
-DEFAULT_PROFILES_DIR = "/usr/appli/freeware/kofamscan/1.3.0/db/profiles"
-
-
 @dataclass
 class DomainHit:
     """Container describing a detected domain on the original sequence."""
@@ -201,8 +198,10 @@ def annotate_precision(
     """Annotate domains in ``sequence`` using precision mode."""
 
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if not hmmer_dir:
+        raise ValueError("hmmer_dir must be provided for precision annotation")
     model, _, idx2ko, thresholds = _load_model(mode, date, device)
-    hmm_dir = Path(hmmer_dir or DEFAULT_PROFILES_DIR)
+    hmm_dir = Path(hmmer_dir)
 
     with torch.no_grad():
         hits = _annotate_sequence(sequence, model, idx2ko, thresholds, hmm_dir, device)
@@ -232,8 +231,10 @@ def inference_precision(
     """Run precision inference on ``input_path`` and write CSV to ``output_path``."""
 
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if not profiles_dir:
+        raise ValueError("profiles_dir must be provided when running precision inference")
     model, _, idx2ko, thresholds = _load_model(mode, date, device)
-    hmm_dir = Path(profiles_dir or DEFAULT_PROFILES_DIR)
+    hmm_dir = Path(profiles_dir)
 
     total_sequences = 0
     annotated_sequences = 0
