@@ -80,14 +80,14 @@ pip install -r requirements.txt
 
 > [!WARNING]
 > **For GPU Users (Manual PyTorch Installation Required):**
-> 1. First, prepare the dependency file. Open `requirements.txt`, comment out the line for `torch` by adding a `#` at the beginning, and save the file.
+> 1. Prepare the dependency file. Open `requirements.txt`, comment out the line for `torch` by adding a `#` at the beginning, and save the file.
 > ```txt
 > numpy==1.26.3
 > pandas==2.2.2
 > # torch==2.4.1
 > tqdm==4.66.4
 > ```
-> 2. Next, install all other dependencies by running the following command:
+> 2. Install all other dependencies by running the following command:
 > ```bash
 > pip install -r requirements.txt
 > ```
@@ -151,6 +151,22 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --mode meta
        | T04784_FRACYDRAFT_201661 | K25156        | 0.999643    | 0.659121  | *        |
        | T04784_FRACYDRAFT_233513 | K15259        | 0.689804    | 0.921019  |          |
 
+* `--precision`: Enables an optional high-precision validation mode that cross-checks predictions with profile HMMs, and is disabled by default.
+* `--profile_dir` `--pd`: Provides the directory containing the required HMM profiles when precision mode is enabled.
+
+> [!WARNING]
+> **For Precision Mode Users:**
+> 1. Please install [HMMER](http://hmmer.org/) and confirm that `hmmsearch` can be run from the command line.
+> 2. Download `profiles.tar.gz` from [KOfam](https://www.genome.jp/ftp/db/kofam/) and extract it.
+> 3. Write the path of the extracted folder into the default value at line 21 of `deepkoala/cli.py`.
+> ```python
+>     p.add_argument(
+>       '--profiles_dir',
+>       '-pd',
+>       default='',     # <-- replace with your actual path
+>       help='Directory containing KO-specific HMM profiles (precision mode only)',
+>   )
+> ```
 
 ## How to Cite
 
