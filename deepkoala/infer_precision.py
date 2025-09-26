@@ -87,6 +87,10 @@ def _run_hmmsearch(hmm_file: Path, seq: str) -> Tuple[int | None, int | None]:
         except FileNotFoundError:
             print("hmmsearch not found; skipping boundary detection.")
             return None, None
+        except subprocess.CalledProcessError as exc:
+            if exc.returncode == 1:
+                return None, None
+            raise
         domtbl.seek(0)
         for line in domtbl:
             if line.startswith("#"):
