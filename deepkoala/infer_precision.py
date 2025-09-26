@@ -254,15 +254,15 @@ def inference_precision(
                         "predict_label": pd.NA,
                         "probability": pd.NA,
                         "threshold": pd.NA,
-                        "annotate": "",
                         "start": pd.NA,
                         "end": pd.NA,
+                        "annotate": "",
                     }
                 )
 
     df = pd.DataFrame(
         rows,
-        columns=["name", "predict_label", "probability", "threshold", "annotate", "start", "end"],
+        columns=["name", "predict_label", "probability", "threshold", "start", "end", "annotate"],
     )
 
     if output_format == "simple":
