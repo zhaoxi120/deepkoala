@@ -24,6 +24,8 @@ def main():
     args = p.parse_args()
     try:
         if args.precision:
+            if not args.profiles_dir:
+                raise ValueError('--profiles_dir must be provided when --precision is enabled')
             profiles_dir = args.profiles_dir
             stats = inference_precision(
                 input_path=args.input_path,
