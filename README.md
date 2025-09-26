@@ -39,7 +39,7 @@ On an independent test set, DeepKOALA is up to **37.5 times faster** than BlastK
 
 ### Prerequisites
 - [x] Git
-- [x] Python >= 3.9
+- [x] Python >= 3.11
 - [x] (For GPU users) NVIDIA graphics driver
 
 
