@@ -151,7 +151,14 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --mode meta
        | T04784_FRACYDRAFT_201661 | K25156        | 0.999643    | 0.659121  | *        |
        | T04784_FRACYDRAFT_233513 | K15259        | 0.689804    | 0.921019  |          |
 
-* `--precision`: Enables an optional high-precision validation mode that cross-checks predictions with profile HMMs, and is disabled by default.
+   * `detail` (when `--precision` is enabled): Displays the start and end positions of each domain.
+
+       | name                            | predict_label | probability | threshold | start | end  | annotate |
+       | :---:                           | :---:         | :---:       | :---:     | :---: | :---:| :---:    |
+       | Caldivirga_maquilingensis_A1_A2 | K03041        | 0.742483    | 0.61305   | 15    | 902  | *        |
+       | Caldivirga_maquilingensis_A1_A2 | K03042        | 0.999944    | 0.882147  | 910   | 1275 | *        |
+
+* `--precision`: Enables an optional high-precision validation mode that uses profile HMMs to precisely define the boundaries of each domain (disabled by default).
 * `--profile_dir` `--pd`: Provides the directory containing the required HMM profiles when precision mode is enabled.
 
 > [!WARNING]
