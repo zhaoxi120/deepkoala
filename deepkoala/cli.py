@@ -35,9 +35,11 @@ def main():
                 profiles_dir=profiles_dir,
                 output_format=args.output_format,
             )
-        elif args.profiles_dir:
-            raise ValueError('--profiles_dir is only valid when --precision is enabled')
+        
         else:
+            if args.profiles_dir:
+                args.profiles_dir = None
+                
             stats = inference(
                 input_path=args.input_path,
                 output_path=args.output_path,
