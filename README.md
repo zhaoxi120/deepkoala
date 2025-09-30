@@ -159,7 +159,7 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --mode meta
        | Caldivirga_maquilingensis_A1_A2 | K03042        | 0.999944    | 0.882147  | 910   | 1275 | *        |
 
 * `--precision`: Enables an optional high-precision validation mode that uses profile HMMs to precisely define the boundaries of each domain (disabled by default).
-* `--profile_dir` `--pd`: Provides the directory containing the required HMM profiles when precision mode is enabled.
+* `--profiles_dir` `--pd`: Provides the directory containing the required HMM profiles when precision mode is enabled.
 
 > [!WARNING]
 > **For Precision Mode Users:**
