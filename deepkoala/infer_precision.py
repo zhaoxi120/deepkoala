@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, Iterator, List, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 import subprocess
 import tempfile
 
@@ -28,8 +28,8 @@ class DomainHit:
     predict_label: str
     probability: float
     threshold: float
-    start: int
-    end: int
+    start: Optional[int]
+    end: Optional[int]
 
     @property
     def annotate(self) -> str:
@@ -42,8 +42,8 @@ class DomainHit:
             "probability": self.probability,
             "threshold": self.threshold,
             "annotate": self.annotate,
-            "start": self.start,
-            "end": self.end,
+            "start": self.start if self.start is not None else pd.NA,
+            "end": self.end if self.end is not None else pd.NA,
         }
 
 
@@ -161,6 +161,16 @@ def _annotate_sequence(
         ko = idx2ko[pred_idx]
         thr = thresholds[ko]
         if prob < thr:
+            hits.append(
+                DomainHit(
+                    name=name,
+                    predict_label=ko,
+                    probability=prob,
+                    threshold=thr,
+                    start=None,
+                    end=None,
+                )
+            )
             continue
         hmm_file = hmm_dir / f"{ko}.hmm"
         start, end = None, None
@@ -249,7 +259,8 @@ def inference_precision(
             total_sequences += 1
             hits = _annotate_sequence(sequence, model, idx2ko, thresholds, hmm_dir, device, name=seq_id)
             if hits:
-                annotated_sequences += 1
+                if any(hit.annotate == "*" for hit in hits):
+                    annotated_sequences += 1
                 rows.extend(hit.as_row() for hit in hits)
             else:
                 rows.append(
