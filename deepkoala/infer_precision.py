@@ -279,6 +279,7 @@ def inference_precision(
         rows,
         columns=["name", "predict_label", "probability", "threshold", "start", "end", "annotate"],
     )
+    df = df.round(4)
 
     if output_format == "simple":
         df.loc[df["annotate"] != "*", "predict_label"] = pd.NA
