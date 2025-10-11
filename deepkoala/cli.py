@@ -9,7 +9,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument('--input_path', '-i', required=True)
     p.add_argument('--output_path', '-o', required=True)
-    p.add_argument('--mode', '-m', default='full_length', choices=['full_length', 'metagenome'])
+    p.add_argument('--model', '-m', default='full', choices=['full', 'frag'])
     p.add_argument('--date', '-d', default='latest')
     p.add_argument('--batch_size', '-bs', type=int, default=32)
     p.add_argument('--num_workers', '-nw', type=int, default=2)
@@ -30,20 +30,20 @@ def main():
             stats = inference_precision(
                 input_path=args.input_path,
                 output_path=args.output_path,
-                mode=args.mode,
+                model=args.model,
                 date=args.date,
                 profiles_dir=profiles_dir,
                 output_format=args.output_format,
             )
-        
+
         else:
             if args.profiles_dir:
                 args.profiles_dir = None
-                
+
             stats = inference(
                 input_path=args.input_path,
                 output_path=args.output_path,
-                mode=args.mode,
+                model=args.model,
                 date=args.date,
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,

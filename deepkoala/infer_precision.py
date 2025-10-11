@@ -125,19 +125,19 @@ def _read_fasta(path: str) -> Iterator[Tuple[str, str]]:
 
 
 def _load_model(
-    mode: str, date: str, device: torch.device
+    model: str, date: str, device: torch.device
 ) -> Tuple[GRUClassifier, Dict[str, int], Dict[int, str], Dict[str, float]]:
     resources_dir = Path(__file__).resolve().parent.parent / "resources"
     db_date = find_latest_date(date, str(resources_dir))
-    cfg_path = resources_dir / db_date / f"ko_config_{mode}.json"
-    weight_path = resources_dir / db_date / f"weights_{mode}.pt"
+    cfg_path = resources_dir / db_date / f"ko_config_{model}.json"
+    weight_path = resources_dir / db_date / f"weights_{model}.pt"
 
     ko2idx, idx2ko, thresholds = load_ko_config(str(cfg_path))
-    model = GRUClassifier(128, 2, len(ko2idx)).to(device)
+    classifier = GRUClassifier(128, 2, len(ko2idx)).to(device)
     checkpoint = torch.load(str(weight_path), map_location=device)
-    model.load_state_dict(checkpoint)
-    model.eval()
-    return model, ko2idx, idx2ko, thresholds
+    classifier.load_state_dict(checkpoint)
+    classifier.eval()
+    return classifier, ko2idx, idx2ko, thresholds
 
 
 def _annotate_sequence(
@@ -206,7 +206,7 @@ def annotate_precision(
     *,
     hmmer_dir: str | None = None,
     date: str = "latest",
-    mode: str = "full_length",
+    model: str = "full",
     device: torch.device | None = None,
 ) -> List[Dict[str, float]]:
     """Annotate domains in ``sequence`` using precision mode."""
@@ -214,11 +214,11 @@ def annotate_precision(
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not hmmer_dir:
         raise ValueError("hmmer_dir must be provided for precision annotation")
-    model, _, idx2ko, thresholds = _load_model(mode, date, device)
+    classifier, _, idx2ko, thresholds = _load_model(model, date, device)
     hmm_dir = Path(hmmer_dir)
 
     with torch.no_grad():
-        hits = _annotate_sequence(sequence, model, idx2ko, thresholds, hmm_dir, device)
+        hits = _annotate_sequence(sequence, classifier, idx2ko, thresholds, hmm_dir, device)
 
     return [
         {
@@ -236,7 +236,7 @@ def inference_precision(
     input_path: str,
     output_path: str,
     *,
-    mode: str = "full_length",
+    model: str = "full",
     date: str = "latest",
     profiles_dir: str | None = None,
     output_format: str = "detail",
@@ -247,7 +247,7 @@ def inference_precision(
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not profiles_dir:
         raise ValueError("profiles_dir must be provided when running precision inference")
-    model, _, idx2ko, thresholds = _load_model(mode, date, device)
+    classifier, _, idx2ko, thresholds = _load_model(model, date, device)
     hmm_dir = Path(profiles_dir)
 
     total_sequences = 0
@@ -257,7 +257,7 @@ def inference_precision(
     with torch.no_grad():
         for seq_id, sequence in _read_fasta(input_path):
             total_sequences += 1
-            hits = _annotate_sequence(sequence, model, idx2ko, thresholds, hmm_dir, device, name=seq_id)
+            hits = _annotate_sequence(sequence, classifier, idx2ko, thresholds, hmm_dir, device, name=seq_id)
             if hits:
                 if any(hit.annotate == "*" for hit in hits):
                     annotated_sequences += 1
