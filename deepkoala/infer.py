@@ -6,7 +6,7 @@ from .data import get_dataloader
 from .model import GRUClassifier
 from .utils import load_ko_config, find_latest_date
 
-def inference(input_path: str, output_path: str, mode: str="full_length",
+def inference(input_path: str, output_path: str, model: str="full",
               date: str="latest", batch_size: int=64, num_workers: int=2,
               output_format: str="simple", device: torch.device | None=None):
     
@@ -14,8 +14,8 @@ def inference(input_path: str, output_path: str, mode: str="full_length",
     resources_dir = "./resources"
 
     db_date = find_latest_date(date, resources_dir)
-    ko_cfg = Path(resources_dir)/db_date/f"ko_config_{mode}.json"
-    weights = Path(resources_dir)/db_date/f"weights_{mode}.pt"
+    ko_cfg = Path(resources_dir)/db_date/f"ko_config_{model}.json"
+    weights = Path(resources_dir)/db_date/f"weights_{model}.pt"
 
     ko2idx, idx2ko, threshold = load_ko_config(str(ko_cfg))
     model = GRUClassifier(128, 2, len(ko2idx)).to(device)

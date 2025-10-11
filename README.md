@@ -13,10 +13,10 @@
 ## About the Project
 **DeepKOALA** is a high-performance deep learning-based tool for rapid protein function annotation according to the **KEGG Orthology (KO)** system. By framing KO assignment as an open-set recognition problem, it can effectively distinguish between known and unknown functional sequences, thereby reducing false-positive annotations.
 
-Built on a Gated Recurrent Unit (GRU) architecture, the tool provides excellent computational efficiency while ensuring high accuracy. In this beta version, DeepKOALA offers two operational modes:
+Built on a Gated Recurrent Unit (GRU) architecture, the tool provides excellent computational efficiency while ensuring high accuracy. In this beta version, DeepKOALA offers two operational models:
 
-* **`full_length` mode**: Delivers high-precision annotation for complete protein sequences.
-* **`metagenome` mode**: Specially optimized for handling fragmented sequences common in metagenomic data, significantly improving the recognition rate and accuracy for incomplete sequences.
+* **`full` model**: Delivers high-precision annotation for complete protein sequences.
+* **`fragment` model**: Specially optimized for handling fragmented sequences common in metagenomic data, significantly improving the recognition rate and accuracy for incomplete sequences.
 
 
 
@@ -30,9 +30,9 @@ On an independent test set, DeepKOALA is up to **37.5 times faster** than BlastK
 
 ### Application on Metagenomic Datasets
 
-![image](./figures/comparison_metagenome.png)
+![image](./figures/comparison_fragment.png)
 
-**`metagenome` mode** is optimized for fragmented sequences. It can annotate the 46 million proteins of the OM-RGC v2 catalog in approximately 30 minutes and additionally identifies over 1 million sequences missed by other mainstream tools.
+**`fragment` model** is optimized for fragmented sequences. It can annotate the 46 million proteins of the OM-RGC v2 catalog in approximately 30 minutes and additionally identifies over 1 million sequences missed by other mainstream tools.
 
 
 ## Installation
@@ -123,16 +123,16 @@ python3 -m deepkoala.cli -i my_proteins.fasta -o results.csv
 To annotate metagenomic genes using the specialized model and get a detailed output:
 
 ```bash
-python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --mode metagenome --output_format detail
+python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model frag --output_format detail
 ```
 
 ### Command-Line Options
 
 * `--input_path` `-i`: Path to the input protein FASTA file. **(Required)**
 * `--output_path` `-o`: Path for the output CSV results file. **(Required)**
-* `--mode` `-m`: Sets the prediction model. (Default: `full_length`)
-  * `full_length`: Standard model, optimized for complete protein sequences.
-  * `metagenome`: Specialized model, trained to better handle fragmented sequences common in metagenomics.
+* `--model` `-m`: Sets the prediction model. (Default: `full`)
+  * `full`: Standard model, optimized for complete protein sequences.
+  * `frag`: Specialized model, trained to better handle fragmented sequences common in metagenomics.
 * `--date` `-d`: Specifies the version of the pre-trained model to use. (Default: `latest`, which loads the latest available model).
 * `--batch_size` `-bs`: Number of sequences to process in a single batch. Larger values can be faster on GPUs but use more memory. (Default: `32`).
 * `--num_workers` `-nw`: Number of worker processes for data loading. Can accelerate processing on some systems. (Default: `2`).

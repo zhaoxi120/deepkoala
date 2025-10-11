@@ -15,7 +15,7 @@ def test_cli_with_fixed_fasta(tmp_path: Path):
             "python", "-m", "deepkoala.cli",
             "-i", str(fasta_file),
             "-o", str(out_csv),
-            "-m", "full_length",
+            "-m", "full",
             "-d", "latest",
             "-of", "simple",
         ],
