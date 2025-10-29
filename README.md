@@ -151,18 +151,18 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model fra
        | T04784_FRACYDRAFT_201661 | K25156        | 0.999643    | 0.659121  | *        |
        | T04784_FRACYDRAFT_233513 | K15259        | 0.689804    | 0.921019  |          |
 
-   * `detail` (when `--precision` is enabled): Displays the start and end positions of each domain.
+   * `detail` (when `--multi` is enabled): Displays the start and end positions of each domain.
 
        | name                            | predict_label | probability | threshold | start | end  | annotate |
        | :---:                           | :---:         | :---:       | :---:     | :---: | :---:| :---:    |
        | Caldivirga_maquilingensis_A1_A2 | K03041        | 0.742483    | 0.61305   | 15    | 902  | *        |
        | Caldivirga_maquilingensis_A1_A2 | K03042        | 0.999944    | 0.882147  | 910   | 1275 | *        |
 
-* `--precision`: Enables an optional high-precision validation mode that uses profile HMMs to precisely define the boundaries of each domain (disabled by default).
-* `--profiles_dir` `--pd`: Provides the directory containing the required HMM profiles when precision mode is enabled.
+* `--multi`: Enables an optional multi-domain validation mode that uses profile HMMs to precisely define the boundaries of each domain (disabled by default).
+* `--profiles_dir` `--pd`: Provides the directory containing the required HMM profiles when multi-domain mode is enabled.
 
 > [!WARNING]
-> **For Precision Mode Users:**
+> **For Multi-domain Mode Users:**
 > 1. Please install [HMMER](http://hmmer.org/) and confirm that `hmmsearch` can be run from the command line.
 > 2. Download `profiles.tar.gz` from [KOfam](https://www.genome.jp/ftp/db/kofam/archives/2025-02-01/) and extract it.
 > 3. Write the path of the extracted folder into the default value at line 21 of `deepkoala/cli.py`.
@@ -171,7 +171,7 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model fra
 >       '--profiles_dir',
 >       '-pd',
 >       default='',     # <-- replace with your actual path
->       help='Directory containing KO-specific HMM profiles (precision mode only)',
+>       help='Directory containing KO-specific HMM profiles (multi-domain mode only)',
 >   )
 > ```
 

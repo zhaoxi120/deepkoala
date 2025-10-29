@@ -209,11 +209,11 @@ def annotate_precision(
     model: str = "full",
     device: torch.device | None = None,
 ) -> List[Dict[str, float]]:
-    """Annotate domains in ``sequence`` using precision mode."""
+    """Annotate domains in ``sequence`` using multi-domain mode."""
 
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not hmmer_dir:
-        raise ValueError("hmmer_dir must be provided for precision annotation")
+        raise ValueError("hmmer_dir must be provided for multi-domain annotation")
     classifier, _, idx2ko, thresholds = _load_model(model, date, device)
     hmm_dir = Path(hmmer_dir)
 
@@ -242,11 +242,11 @@ def inference_precision(
     output_format: str = "detail",
     device: torch.device | None = None,
 ) -> Dict[str, object]:
-    """Run precision inference on ``input_path`` and write CSV to ``output_path``."""
+    """Run multi-domain inference on ``input_path`` and write CSV to ``output_path``."""
 
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not profiles_dir:
-        raise ValueError("profiles_dir must be provided when running precision inference")
+        raise ValueError("profiles_dir must be provided when running multi-domain inference")
     classifier, _, idx2ko, thresholds = _load_model(model, date, device)
     hmm_dir = Path(profiles_dir)
 
