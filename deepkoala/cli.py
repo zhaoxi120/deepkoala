@@ -14,18 +14,18 @@ def main():
     p.add_argument('--batch_size', '-bs', type=int, default=32)
     p.add_argument('--num_workers', '-nw', type=int, default=2)
     p.add_argument('--output_format', '-of', default='simple', choices=['simple', 'detail'])
-    p.add_argument('--precision', action='store_true', help='Enable precision mode for domain annotations')
+    p.add_argument('--multi', action='store_true', help='Enable multi-domain mode for domain annotations')
     p.add_argument(
         '--profiles_dir',
         '-pd',
         default='',
-        help='Directory containing KO-specific HMM profiles (precision mode only)',
+        help='Directory containing KO-specific HMM profiles (multi-domain mode only)',
     )
     args = p.parse_args()
     try:
-        if args.precision:
+        if args.multi:
             if not args.profiles_dir:
-                raise ValueError('--profiles_dir must be provided when --precision is enabled')
+                raise ValueError('--profiles_dir must be provided when --multi is enabled')
             profiles_dir = args.profiles_dir
             stats = inference_precision(
                 input_path=args.input_path,
