@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from .infer import inference
-from .infer_precision import inference_precision
+from .infer_multi import inference_precision
 
 
 def main():
