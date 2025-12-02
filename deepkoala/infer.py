@@ -62,11 +62,6 @@ def inference(
                 total += 1
                 ann_cnt += 1 if mark else 0
 
-                label_prob_pairs = [
-                    f"{idx2ko[i]}:{prob_val:.6f}"
-                    for i, prob_val in zip(idx_row, prob_row)
-                ]
-                top_preds.append(";".join(label_prob_pairs))
 
     df = pd.DataFrame(
         {
@@ -75,7 +70,6 @@ def inference(
             "probability": probs,
             "threshold": thrs,
             "annotate": ann,
-            "top_predictions": top_preds,
         }
     )
     df = df.round(4)
