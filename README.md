@@ -160,6 +160,8 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model fra
 
 * `--multi`: Enables an optional multi-domain validation mode that uses profile HMMs to precisely define the boundaries of each domain (disabled by default).
 * `--profiles_dir` `--pd`: Provides the directory containing the required HMM profiles when multi-domain mode is enabled.
+* `--top_k` `-tk`: Emit the top **k** predictions per input sequence (Default: `1`).
+
 
 > [!WARNING]
 > **For Multi-domain Mode Users:**
