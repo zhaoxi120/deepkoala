@@ -21,7 +21,6 @@ def main():
     p.add_argument('--num_workers', '-nw', type=int, default=2, help='Number of dataloader worker processes')
     p.add_argument(
         '--detail',
-        '-dl',
         action='store_true',
         help='Use detailed output format (include probabilities, thresholds, and boundaries where applicable)',
     )
