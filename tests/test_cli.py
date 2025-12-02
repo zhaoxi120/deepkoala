@@ -17,7 +17,6 @@ def test_cli_with_fixed_fasta(tmp_path: Path):
             "-o", str(out_csv),
             "-m", "full",
             "-d", "latest",
-            "-of", "simple",
         ],
         capture_output=True,
         text=True,

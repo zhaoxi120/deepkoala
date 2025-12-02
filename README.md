@@ -123,7 +123,7 @@ python3 -m deepkoala.cli -i my_proteins.fasta -o results.csv
 To annotate metagenomic genes using the specialized model and get a detailed output:
 
 ```bash
-python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model frag --output_format detail
+python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model frag --detail
 ```
 
 ### Command-Line Options
@@ -136,22 +136,22 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model fra
 * `--date` `-d`: Specifies the version of the pre-trained model to use. (Default: `latest`, which loads the latest available model).
 * `--batch_size` `-bs`: Number of sequences to process in a single batch. Larger values can be faster on GPUs but use more memory. (Default: `32`).
 * `--num_workers` `-nw`: Number of worker processes for data loading. Can accelerate processing on some systems. (Default: `2`).
-* `--output_format` `-of`: Determines the columns in the output file. (Default: `simple`)
-  * `simple`: A concise format that only shows the predicted KO label (`predict_label`) for sequences that meet the confidence threshold. Other predictions are left blank.
+* `--detail` `-dl`: Emit a detailed output format instead of the simple default.
+  * **Default (simple)**: A concise format that only shows the predicted KO label (`predict_label`) for sequences that meet the confidence threshold. Other predictions are left blank.
 
        | name                     | predict_label |
        | :---:                    | :---:         |
        | T04784_FRACYDRAFT_201661 | K25156        |
        | T04784_FRACYDRAFT_233513 |               |
-    
-  * `detail`: A comprehensive format that shows the top prediction for every sequence, its probability score, the required confidence threshold, and an asterisk (`*`) in the `annotate` column if the prediction is confident (`probability` >= `threshold`).
-  
+
+  * **With `--detail`**: A comprehensive format that shows the top prediction for every sequence, its probability score, the required confidence threshold, and an asterisk (`*`) in the `annotate` column if the prediction is confident (`probability` >= `threshold`).
+
        | name                     | predict_label | probability | threshold | annotate |
        | :---:                    | :---:         | :---:       | :---:     | :---:    |
        | T04784_FRACYDRAFT_201661 | K25156        | 0.999643    | 0.659121  | *        |
        | T04784_FRACYDRAFT_233513 | K15259        | 0.689804    | 0.921019  |          |
 
-   * `detail` (when `--multi` is enabled): Displays the start and end positions of each domain.
+   * **With `--detail` and `--multi` enabled**: Displays the start and end positions of each domain (the first-ranked hit includes boundary searches; other ranked hits leave `start`/`end` empty).
 
        | name                            | predict_label | probability | threshold | start | end  | annotate |
        | :---:                           | :---:         | :---:       | :---:     | :---: | :---:| :---:    |

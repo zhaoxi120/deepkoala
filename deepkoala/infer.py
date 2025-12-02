@@ -6,9 +6,17 @@ from .data import get_dataloader
 from .model import GRUClassifier
 from .utils import load_ko_config, find_latest_date
 
-def inference(input_path: str, output_path: str, model: str="full",
-              date: str="latest", batch_size: int=64, num_workers: int=2,
-              output_format: str="simple", device: torch.device | None=None):
+def inference(
+    input_path: str,
+    output_path: str,
+    model: str = "full",
+    date: str = "latest",
+    batch_size: int = 64,
+    num_workers: int = 2,
+    detail: bool = False,
+    device: torch.device | None = None,
+    top_k: int = 1,
+):
     
     device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     resources_dir = "./resources"
@@ -22,7 +30,10 @@ def inference(input_path: str, output_path: str, model: str="full",
     checkpoint = torch.load(str(weights), map_location=device)
     model.load_state_dict(checkpoint)
 
-    names, labels, probs, thrs, ann = [], [], [], [], []
+    if top_k < 1:
+        raise ValueError("top_k must be >= 1")
+
+    names, labels, probs, thrs, ann, top_preds = [], [], [], [], [], []
     total, ann_cnt = 0, 0
 
     model.eval()
@@ -32,23 +43,44 @@ def inference(input_path: str, output_path: str, model: str="full",
             seqs, lens = seqs.to(device), lens.to(device)
             out = model(seqs, lens)
             prob = F.softmax(out, dim=1)
-            mx, idx = torch.max(prob, dim=1)
-            for n, j, p in zip(seq_names, idx.tolist(), mx.tolist()):
-                names.append(n)
-                pred = idx2ko[j]
+            k = min(top_k, prob.size(1))
+            top_prob, top_idx = torch.topk(prob, k=k, dim=1)
+
+            for seq_name, idx_row, prob_row in zip(
+                seq_names, top_idx.tolist(), top_prob.tolist()
+            ):
+                primary_idx = idx_row[0]
+                primary_prob = prob_row[0]
+                names.append(seq_name)
+                pred = idx2ko[primary_idx]
                 labels.append(pred)
-                probs.append(p)
+                probs.append(primary_prob)
                 th = threshold[pred]
                 thrs.append(th)
-                mark = '*' if p >= th else ''
+                mark = '*' if primary_prob >= th else ''
                 ann.append(mark)
                 total += 1
                 ann_cnt += 1 if mark else 0
 
-    df = pd.DataFrame({"name":names,"predict_label":labels,"probability":probs,"threshold":thrs,"annotate":ann})
+                label_prob_pairs = [
+                    f"{idx2ko[i]}:{prob_val:.6f}"
+                    for i, prob_val in zip(idx_row, prob_row)
+                ]
+                top_preds.append(";".join(label_prob_pairs))
+
+    df = pd.DataFrame(
+        {
+            "name": names,
+            "predict_label": labels,
+            "probability": probs,
+            "threshold": thrs,
+            "annotate": ann,
+            "top_predictions": top_preds,
+        }
+    )
     df = df.round(4)
     
-    if output_format == "simple":
+    if not detail:
         df.loc[df["annotate"] != "*", "predict_label"] = pd.NA
         df = df[["name","predict_label"]]
     

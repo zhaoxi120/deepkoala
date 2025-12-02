@@ -54,15 +54,18 @@ def _tokenize(seq: str) -> torch.Tensor:
     return torch.tensor(tokens, dtype=torch.long)
 
 
-def _classify(model: GRUClassifier, seq: str, device: torch.device) -> Tuple[int, float]:
-    """Return (predicted_index, probability) for a fragment."""
+def _classify(
+    model: GRUClassifier, seq: str, device: torch.device, top_k: int
+) -> Tuple[List[int], List[float]]:
+    """Return ``(indices, probabilities)`` for the top-k predictions of a fragment."""
 
     tensor = _tokenize(seq).unsqueeze(0).to(device)
     lens = torch.tensor([tensor.size(1) - 1], dtype=torch.long, device=device)
     logits = model(tensor, lens)
     prob = F.softmax(logits, dim=1)[0]
-    mx, idx = torch.max(prob, dim=0)
-    return idx.item(), mx.item()
+    k = min(top_k, prob.size(0))
+    top_prob, top_idx = torch.topk(prob, k=k)
+    return top_idx.tolist(), top_prob.tolist()
 
 
 def _run_hmmsearch(hmm_file: Path, seq: str) -> Tuple[int | None, int | None]:
@@ -149,6 +152,7 @@ def _annotate_sequence(
     device: torch.device,
     *,
     name: str | None = None,
+    top_k: int = 1,
 ) -> List[DomainHit]:
     hits: List[DomainHit] = []
     queue: List[Tuple[str, int]] = [(sequence, 0)]
@@ -157,47 +161,64 @@ def _annotate_sequence(
         frag, offset = queue.pop(0)
         if len(frag) < 50:
             continue
-        pred_idx, prob = _classify(model, frag, device)
-        ko = idx2ko[pred_idx]
-        thr = thresholds[ko]
-        if prob < thr:
-            hits.append(
-                DomainHit(
-                    name=name,
-                    predict_label=ko,
-                    probability=prob,
-                    threshold=thr,
-                    start=None,
-                    end=None,
+        pred_indices, probs = _classify(model, frag, device, top_k=top_k)
+        if isinstance(pred_indices, int):
+            pred_indices = [pred_indices]
+        if isinstance(probs, (int, float)):
+            probs = [float(probs)]
+        for rank, (pred_idx, prob) in enumerate(zip(pred_indices, probs)):
+            ko = idx2ko[pred_idx]
+            thr = thresholds[ko]
+            if rank == 0:
+                if prob < thr:
+                    hits.append(
+                        DomainHit(
+                            name=name,
+                            predict_label=ko,
+                            probability=prob,
+                            threshold=thr,
+                            start=None,
+                            end=None,
+                        )
+                    )
+                    break
+                hmm_file = hmm_dir / f"{ko}.hmm"
+                start, end = None, None
+                if hmm_file.exists():
+                    start, end = _run_hmmsearch(hmm_file, frag)
+                if start is None or end is None:
+                    dom_start = offset + 1
+                    dom_end = offset + len(frag)
+                else:
+                    dom_start = offset + start
+                    dom_end = offset + end
+                hits.append(
+                    DomainHit(
+                        name=name,
+                        predict_label=ko,
+                        probability=prob,
+                        threshold=thr,
+                        start=dom_start,
+                        end=dom_end,
+                    )
                 )
-            )
-            continue
-        hmm_file = hmm_dir / f"{ko}.hmm"
-        start, end = None, None
-        if hmm_file.exists():
-            start, end = _run_hmmsearch(hmm_file, frag)
-        if start is None or end is None:
-            dom_start = offset + 1
-            dom_end = offset + len(frag)
-        else:
-            dom_start = offset + start
-            dom_end = offset + end
-        hits.append(
-            DomainHit(
-                name=name,
-                predict_label=ko,
-                probability=prob,
-                threshold=thr,
-                start=dom_start,
-                end=dom_end,
-            )
-        )
-        left = frag[: dom_start - offset - 1]
-        right = frag[dom_end - offset :]
-        if len(left) >= 50:
-            queue.append((left, offset))
-        if len(right) >= 50:
-            queue.append((right, dom_end))
+                left = frag[: dom_start - offset - 1]
+                right = frag[dom_end - offset :]
+                if len(left) >= 50:
+                    queue.append((left, offset))
+                if len(right) >= 50:
+                    queue.append((right, dom_end))
+            else:
+                hits.append(
+                    DomainHit(
+                        name=name,
+                        predict_label=ko,
+                        probability=prob,
+                        threshold=thr,
+                        start=None,
+                        end=None,
+                    )
+                )
     return hits
 
 
@@ -239,14 +260,17 @@ def inference_precision(
     model: str = "full",
     date: str = "latest",
     profiles_dir: str | None = None,
-    output_format: str = "detail",
+    detail: bool = False,
     device: torch.device | None = None,
+    top_k: int = 1,
 ) -> Dict[str, object]:
     """Run multi-domain inference on ``input_path`` and write CSV to ``output_path``."""
 
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not profiles_dir:
         raise ValueError("profiles_dir must be provided when running multi-domain inference")
+    if top_k < 1:
+        raise ValueError("top_k must be >= 1")
     classifier, _, idx2ko, thresholds = _load_model(model, date, device)
     hmm_dir = Path(profiles_dir)
 
@@ -257,7 +281,16 @@ def inference_precision(
     with torch.no_grad():
         for seq_id, sequence in _read_fasta(input_path):
             total_sequences += 1
-            hits = _annotate_sequence(sequence, classifier, idx2ko, thresholds, hmm_dir, device, name=seq_id)
+            hits = _annotate_sequence(
+                sequence,
+                classifier,
+                idx2ko,
+                thresholds,
+                hmm_dir,
+                device,
+                name=seq_id,
+                top_k=top_k,
+            )
             if hits:
                 if any(hit.annotate == "*" for hit in hits):
                     annotated_sequences += 1
@@ -281,7 +314,7 @@ def inference_precision(
     )
     df = df.round(4)
 
-    if output_format == "simple":
+    if not detail:
         df.loc[df["annotate"] != "*", "predict_label"] = pd.NA
         df = df[["name", "predict_label"]]
 
