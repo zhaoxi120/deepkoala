@@ -136,7 +136,7 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model fra
 * `--date` `-d`: Specifies the version of the pre-trained model to use. (Default: `latest`, which loads the latest available model).
 * `--batch_size` `-bs`: Number of sequences to process in a single batch. Larger values can be faster on GPUs but use more memory. (Default: `32`).
 * `--num_workers` `-nw`: Number of worker processes for data loading. Can accelerate processing on some systems. (Default: `2`).
-* `--detail` `-dl`: Emit a detailed output format instead of the simple default.
+* `--detail`: Emit a detailed output format instead of the simple default.
   * **Default (simple)**: A concise format that only shows the predicted KO label (`predict_label`) for sequences that meet the confidence threshold. Other predictions are left blank.
 
        | name                     | predict_label |
