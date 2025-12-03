@@ -181,7 +181,7 @@ def _annotate_sequence(
                             end=None,
                         )
                     )
-                    break
+                    continue
                 hmm_file = hmm_dir / f"{ko}.hmm"
                 start, end = None, None
                 if hmm_file.exists():
