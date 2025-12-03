@@ -24,7 +24,7 @@ def main():
         action='store_true',
         help='Use detailed output format (include probabilities, thresholds, and boundaries where applicable)',
     )
-    p.add_argument('--top_k', '-tk', type=int, default=1, help='Number of top predictions to emit per sequence')
+    p.add_argument('--topk', '-tk', type=int, default=1, help='Number of top predictions to emit per sequence')
     p.add_argument('--multi', action='store_true', help='Enable multi-domain mode for domain annotations')
     p.add_argument(
         '--profiles_dir',
