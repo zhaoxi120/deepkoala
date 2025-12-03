@@ -169,13 +169,43 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model fra
 > 2. Download `profiles.tar.gz` from [KOfam](https://www.genome.jp/ftp/db/kofam/archives/2025-02-01/) and extract it.
 > 3. Write the path of the extracted folder into the default value at line 21 of `deepkoala/cli.py`.
 > ```python
->     p.add_argument(
->       '--profiles_dir',
->       '-pd',
->       default='',     # <-- replace with your actual path
->       help='Directory containing KO-specific HMM profiles (multi-domain mode only)',
->   )
+    p.add_argument(
+      '--profiles_dir',
+      '-pd',
+      default='',     # <-- replace with your actual path
+      help='Directory containing KO-specific HMM profiles (multi-domain mode only)',
+  )
 > ```
+
+### Python API
+
+DeepKOALA can also be called programmatically when you want to integrate KO assignment inside a larger Python workflow. The
+weights and KO configuration files are automatically located from the installed package, so you can run inference from any
+working directory.
+
+```python
+from deepkoala.infer import inference
+from deepkoala.infer_multi import annotate_precision
+
+# Simple single-model prediction written to CSV
+stats = inference(
+    input_path="input.fasta",
+    output_path="results.csv",
+    model="full",        # or "frag"
+    topk=3,               # emit top-3 predictions per sequence
+    detail=True,          # include probabilities and thresholds
+)
+
+# Multi-domain mode for a single sequence (requires HMM profiles)
+hits = annotate_precision(
+    sequence="MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQLR",
+    hmmer_dir="/path/to/profiles",
+    model="full",
+)
+```
+
+* `deepkoala.infer.inference` mirrors the CLI options (`--model`, `--date`, `--batch_size`, `--num_workers`, `--detail`, `--topk`) and writes the results to `output_path`. It returns a summary dictionary with the total and annotated sequence counts.
+* `deepkoala.infer_multi.annotate_precision` returns a list of domain hits for a single sequence, each including the KO, probability, threshold, and domain boundaries when available.
 
 ## How to Cite
 
