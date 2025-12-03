@@ -15,7 +15,7 @@ def inference(
     num_workers: int = 2,
     detail: bool = False,
     device: torch.device | None = None,
-    top_k: int = 1,
+    topk: int = 1,
 ):
     
     device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -30,8 +30,8 @@ def inference(
     checkpoint = torch.load(str(weights), map_location=device)
     model.load_state_dict(checkpoint)
 
-    if top_k < 1:
-        raise ValueError("top_k must be >= 1")
+    if topk < 1:
+        raise ValueError("topk must be >= 1")
 
     names, labels, probs, thrs, ann = [], [], [], [], []
     total_sequences, annotated_sequences = 0, 0
@@ -43,7 +43,7 @@ def inference(
             seqs, lens = seqs.to(device), lens.to(device)
             out = model(seqs, lens)
             prob = F.softmax(out, dim=1)
-            k = min(top_k, prob.size(1))
+            k = min(topk, prob.size(1))
             top_prob, top_idx = torch.topk(prob, k=k, dim=1)
 
             for seq_name, idx_row, prob_row in zip(
