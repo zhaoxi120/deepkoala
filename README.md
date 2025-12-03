@@ -169,12 +169,12 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model fra
 > 2. Download `profiles.tar.gz` from [KOfam](https://www.genome.jp/ftp/db/kofam/archives/2025-02-01/) and extract it.
 > 3. Write the path of the extracted folder into the default value at line 21 of `deepkoala/cli.py`.
 > ```python
-    p.add_argument(
-      '--profiles_dir',
-      '-pd',
-      default='',     # <-- replace with your actual path
-      help='Directory containing KO-specific HMM profiles (multi-domain mode only)',
-  )
+>p.add_argument(
+>    '--profiles_dir',
+>    '-pd',
+>    default='',     # <-- replace with your actual path
+>    help='Directory containing KO-specific HMM profiles (multi-domain mode only)',
+>)
 > ```
 
 ### Python API
