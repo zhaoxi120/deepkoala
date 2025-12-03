@@ -33,8 +33,8 @@ def inference(
     if top_k < 1:
         raise ValueError("top_k must be >= 1")
 
-    names, labels, probs, thrs, ann, top_preds = [], [], [], [], [], []
-    total, ann_cnt = 0, 0
+    names, labels, probs, thrs, ann = [], [], [], [], []
+    total_sequences, annotated_sequences = 0, 0
 
     model.eval()
     with torch.no_grad():
@@ -49,18 +49,25 @@ def inference(
             for seq_name, idx_row, prob_row in zip(
                 seq_names, top_idx.tolist(), top_prob.tolist()
             ):
-                primary_idx = idx_row[0]
-                primary_prob = prob_row[0]
-                names.append(seq_name)
-                pred = idx2ko[primary_idx]
-                labels.append(pred)
-                probs.append(primary_prob)
-                th = threshold[pred]
-                thrs.append(th)
-                mark = '*' if primary_prob >= th else ''
-                ann.append(mark)
-                total += 1
-                ann_cnt += 1 if mark else 0
+                total_sequences += 1
+                seq_annotated = False
+
+                for pred_idx, pred_prob in zip(idx_row, prob_row):
+                    pred = idx2ko[pred_idx]
+                    th = threshold[pred]
+                    mark = '*' if pred_prob >= th else ''
+
+                    names.append(seq_name)
+                    labels.append(pred)
+                    probs.append(pred_prob)
+                    thrs.append(th)
+                    ann.append(mark)
+
+                    if mark:
+                        seq_annotated = True
+
+                if seq_annotated:
+                    annotated_sequences += 1
 
 
     df = pd.DataFrame(
@@ -80,4 +87,8 @@ def inference(
     
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)
-    return {"total": total, "annotated": ann_cnt, "output": str(output_path)}
+    return {
+        "total": total_sequences,
+        "annotated": annotated_sequences,
+        "output": str(output_path),
+    }
