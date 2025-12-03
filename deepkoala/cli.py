@@ -45,7 +45,7 @@ def main():
                 date=args.date,
                 profiles_dir=profiles_dir,
                 detail=args.detail,
-                top_k=args.top_k,
+                topk=args.topk,
             )
 
         else:
@@ -60,7 +60,7 @@ def main():
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
                 detail=args.detail,
-                top_k=args.top_k,
+                topk=args.topk,
             )
         print(f"Processed {stats['total']} sequences, annotated {stats['annotated']}.")
     except Exception as e:
