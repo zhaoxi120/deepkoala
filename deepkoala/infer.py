@@ -19,11 +19,11 @@ def inference(
 ):
     
     device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    resources_dir = "./resources"
+    resources_dir = Path(__file__).resolve().parent.parent / "resources"
 
     db_date = find_latest_date(date, resources_dir)
-    ko_cfg = Path(resources_dir)/db_date/f"ko_config_{model}.json"
-    weights = Path(resources_dir)/db_date/f"weights_{model}.pt"
+    ko_cfg = resources_dir / db_date / f"ko_config_{model}.json"
+    weights = resources_dir / db_date / f"weights_{model}.pt"
 
     ko2idx, idx2ko, threshold = load_ko_config(str(ko_cfg))
     model = GRUClassifier(128, 2, len(ko2idx)).to(device)
