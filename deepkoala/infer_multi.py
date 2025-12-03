@@ -55,7 +55,7 @@ def _tokenize(seq: str) -> torch.Tensor:
 
 
 def _classify(
-    model: GRUClassifier, seq: str, device: torch.device, top_k: int
+    model: GRUClassifier, seq: str, device: torch.device, topk: int
 ) -> Tuple[List[int], List[float]]:
     """Return ``(indices, probabilities)`` for the top-k predictions of a fragment."""
 
@@ -63,7 +63,7 @@ def _classify(
     lens = torch.tensor([tensor.size(1) - 1], dtype=torch.long, device=device)
     logits = model(tensor, lens)
     prob = F.softmax(logits, dim=1)[0]
-    k = min(top_k, prob.size(0))
+    k = min(topk, prob.size(0))
     top_prob, top_idx = torch.topk(prob, k=k)
     return top_idx.tolist(), top_prob.tolist()
 
@@ -152,7 +152,7 @@ def _annotate_sequence(
     device: torch.device,
     *,
     name: str | None = None,
-    top_k: int = 1,
+    topk: int = 1,
 ) -> List[DomainHit]:
     hits: List[DomainHit] = []
     queue: List[Tuple[str, int]] = [(sequence, 0)]
@@ -161,7 +161,7 @@ def _annotate_sequence(
         frag, offset = queue.pop(0)
         if len(frag) < 50:
             continue
-        pred_indices, probs = _classify(model, frag, device, top_k=top_k)
+        pred_indices, probs = _classify(model, frag, device, topk=topk)
         if isinstance(pred_indices, int):
             pred_indices = [pred_indices]
         if isinstance(probs, (int, float)):
@@ -262,15 +262,15 @@ def inference_precision(
     profiles_dir: str | None = None,
     detail: bool = False,
     device: torch.device | None = None,
-    top_k: int = 1,
+    topk: int = 1,
 ) -> Dict[str, object]:
     """Run multi-domain inference on ``input_path`` and write CSV to ``output_path``."""
 
     device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not profiles_dir:
         raise ValueError("profiles_dir must be provided when running multi-domain inference")
-    if top_k < 1:
-        raise ValueError("top_k must be >= 1")
+    if topk < 1:
+        raise ValueError("topk must be >= 1")
     classifier, _, idx2ko, thresholds = _load_model(model, date, device)
     hmm_dir = Path(profiles_dir)
 
@@ -289,7 +289,7 @@ def inference_precision(
                 hmm_dir,
                 device,
                 name=seq_id,
-                top_k=top_k,
+                topk=topk,
             )
             if hits:
                 if any(hit.annotate == "*" for hit in hits):
