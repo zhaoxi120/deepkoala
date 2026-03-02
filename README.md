@@ -2,6 +2,8 @@
 ### Beta Version
 **An ultra-fast and accurate tool for KEGG Orthology (KO) assignment, powered by deep learning.**
 
+**Online version: https://www.genome.jp/tools/deepkoala/**
+
 ### Table of Contents
 * [About the Project](#about-the-project)
 * [Performance](#performance)
@@ -99,8 +101,9 @@ pip install -r requirements.txt
 
 ### 4. Download Pre-trained Models
 
-The pre-trained model file (version February 2025) is already included in this beta version of the project. No separate download is required.
+The pre-trained model file (version February 2025) is already included in this beta version of the project.
 
+Updated models are released at [GenomeNet](https://www.genome.jp/ftp/db/deepkoala/). Please download the files from this site and place them into the `resources` directory. The program will automatically detect and use the latest version.
 
 ## Usage
 
