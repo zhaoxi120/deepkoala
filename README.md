@@ -212,7 +212,7 @@ hits = annotate_precision(
 
 ## Citation
 
-If you use DeepKOALA in your work, please cite one of the following:
+If you use DeepKOALA in your work, please cite:
 
 ```
 @article{deepkoala2026,
