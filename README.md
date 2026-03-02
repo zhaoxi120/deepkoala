@@ -210,11 +210,20 @@ hits = annotate_precision(
 * `deepkoala.infer.inference` mirrors the CLI options (`--model`, `--date`, `--batch_size`, `--num_workers`, `--detail`, `--topk`) and writes the results to `output_path`. It returns a summary dictionary with the total and annotated sequence counts.
 * `deepkoala.infer_multi.annotate_precision` returns a list of domain hits for a single sequence, each including the KO, probability, threshold, and domain boundaries when available.
 
-## How to Cite
+## Citation
 
-The paper describing DeepKOALA is currently in preparation and will be published soon. In the meantime, if you use this software, please cite this GitHub repository.
+If you use DeepKOALA in your work, please cite one of the following:
 
-We will update this section with formal citation information as soon as it is available.
+```
+@article{deepkoala2026,
+  title = {DeepKOALA: A Fast and Accurate Deep Learning Framework for KEGG Orthology Assignment},
+  author = {Zhaoxi, Yu and Lingjie, Meng and Canh Hao, Nguyen and Hiroshi, Mamitsuka and Minoru, Kanehisa and Hiroyuki Ogata},
+  year = {2026},
+  journal = {bioRxiv},
+  doi = {10.64898/2026.01.07.698072}，
+  url = {https://www.biorxiv.org/content/10.64898/2026.01.07.698072v1-0},
+}
+```
 
 ## License
 
