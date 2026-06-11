@@ -98,6 +98,8 @@ pip install -r requirements.txt
 > ```bash
 > pip install torch==2.4.1 --index-url https://download.pytorch.org/whl/cu121
 > ```
+>
+> **For Apple Silicon Users:** install a macOS PyTorch build with MPS support. DeepKOALA can automatically detect MPS with `--device auto` (the default), or you can explicitly select it with `--device mps`.
 
 ### 4. Download Pre-trained Models
 
@@ -129,6 +131,12 @@ To annotate metagenomic genes using the specialized model and get a detailed out
 python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model frag --detail
 ```
 
+On an Apple Silicon Mac with an MPS-enabled PyTorch build, you can explicitly run inference on the Apple GPU:
+
+```bash
+python3 -m deepkoala.cli -i my_proteins.fasta -o results.csv --device mps
+```
+
 ### Command-Line Options
 
 * `--input_path` `-i`: Path to the input protein FASTA file. **(Required)**
@@ -139,6 +147,7 @@ python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model fra
 * `--date` `-d`: Specifies the version of the pre-trained model to use. (Default: `latest`, which loads the latest available model).
 * `--batch_size` `-bs`: Number of sequences to process in a single batch. Larger values can be faster on GPUs but use more memory. (Default: `32`).
 * `--num_workers` `-nw`: Number of worker processes for data loading. Can accelerate processing on some systems. (Default: `2`).
+* `--device`: Selects the inference device: `auto`, `cpu`, `cuda`, or `mps`. The default `auto` mode prefers CUDA, then Apple Silicon MPS, and finally CPU. Explicitly requested unavailable backends produce an error instead of silently falling back.
 * `--detail`: Emit a detailed output format instead of the simple default.
   * **Default (simple)**: A concise format that only shows the predicted KO label (`predict_label`) for sequences that meet the confidence threshold. Other predictions are left blank.
 
@@ -207,7 +216,7 @@ hits = annotate_precision(
 )
 ```
 
-* `deepkoala.infer.inference` mirrors the CLI options (`--model`, `--date`, `--batch_size`, `--num_workers`, `--detail`, `--topk`) and writes the results to `output_path`. It returns a summary dictionary with the total and annotated sequence counts.
+* `deepkoala.infer.inference` mirrors the CLI options (`--model`, `--date`, `--batch_size`, `--num_workers`, `--device`, `--detail`, `--topk`) and writes the results to `output_path`. It returns a summary dictionary with the total and annotated sequence counts.
 * `deepkoala.infer_multi.annotate_precision` returns a list of domain hits for a single sequence, each including the KO, probability, threshold, and domain boundaries when available.
 
 ## Citation

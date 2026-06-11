@@ -12,7 +12,7 @@ import torch.nn.functional as F
 
 from .data import AA_VOCAB
 from .model import GRUClassifier
-from .utils import find_latest_date, load_ko_config
+from .utils import find_latest_date, load_ko_config, resolve_device
 
 __all__ = [
     "annotate_precision",
@@ -228,11 +228,11 @@ def annotate_precision(
     hmmer_dir: str | None = None,
     date: str = "latest",
     model: str = "full",
-    device: torch.device | None = None,
+    device: str | torch.device | None = None,
 ) -> List[Dict[str, float]]:
     """Annotate domains in ``sequence`` using multi-domain mode."""
 
-    device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = resolve_device(device)
     if not hmmer_dir:
         raise ValueError("hmmer_dir must be provided for multi-domain annotation")
     classifier, _, idx2ko, thresholds = _load_model(model, date, device)
@@ -261,12 +261,12 @@ def inference_precision(
     date: str = "latest",
     profiles_dir: str | None = None,
     detail: bool = False,
-    device: torch.device | None = None,
+    device: str | torch.device | None = None,
     topk: int = 1,
 ) -> Dict[str, object]:
     """Run multi-domain inference on ``input_path`` and write CSV to ``output_path``."""
 
-    device = device or torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = resolve_device(device)
     if not profiles_dir:
         raise ValueError("profiles_dir must be provided when running multi-domain inference")
     if topk < 1:

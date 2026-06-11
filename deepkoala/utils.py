@@ -1,6 +1,41 @@
 import os, re, sys, json
 from typing import Dict, Tuple
 
+import torch
+
+
+def _mps_is_available() -> bool:
+    return hasattr(torch.backends, "mps") and torch.backends.mps.is_available()
+
+
+def resolve_device(device: str | torch.device | None = None) -> torch.device:
+    """Resolve an inference device, validating explicitly requested backends."""
+
+    if device is None or device == "auto":
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        if _mps_is_available():
+            return torch.device("mps")
+        return torch.device("cpu")
+
+    try:
+        resolved = torch.device(device)
+    except (RuntimeError, TypeError) as exc:
+        raise ValueError(
+            f"Unsupported device '{device}'; choose one of: auto, cpu, cuda, mps"
+        ) from exc
+
+    if resolved.type == "cuda" and not torch.cuda.is_available():
+        raise ValueError("Requested device 'cuda' is not available")
+    if resolved.type == "mps" and not _mps_is_available():
+        raise ValueError("Requested device 'mps' is not available")
+    if resolved.type not in {"cpu", "cuda", "mps"}:
+        raise ValueError(
+            f"Unsupported device '{device}'; choose one of: auto, cpu, cuda, mps"
+        )
+    return resolved
+
+
 def load_ko_config(json_path: str):
     with open(json_path, "r", encoding="utf-8") as f:
         classes = json.load(f)
