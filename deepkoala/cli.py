@@ -20,6 +20,12 @@ def main():
     p.add_argument('--batch_size', '-bs', type=int, default=32, help='Batch size for batched inference')
     p.add_argument('--num_workers', '-nw', type=int, default=2, help='Number of dataloader worker processes')
     p.add_argument(
+        '--device',
+        choices=['auto', 'cpu', 'cuda', 'mps'],
+        default='auto',
+        help='Inference device; auto prefers CUDA, then MPS, then CPU',
+    )
+    p.add_argument(
         '--detail',
         action='store_true',
         help='Use detailed output format (include probabilities, thresholds, and boundaries where applicable)',
@@ -45,6 +51,7 @@ def main():
                 date=args.date,
                 profiles_dir=profiles_dir,
                 detail=args.detail,
+                device=args.device,
                 topk=args.topk,
             )
 
@@ -60,6 +67,7 @@ def main():
                 batch_size=args.batch_size,
                 num_workers=args.num_workers,
                 detail=args.detail,
+                device=args.device,
                 topk=args.topk,
             )
         print(f"Processed {stats['total']} sequences, annotated {stats['annotated']}.")

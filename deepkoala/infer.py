@@ -4,7 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 from .data import get_dataloader
 from .model import GRUClassifier
-from .utils import load_ko_config, find_latest_date
+from .utils import find_latest_date, load_ko_config, resolve_device
 
 def inference(
     input_path: str,
@@ -14,11 +14,11 @@ def inference(
     batch_size: int = 64,
     num_workers: int = 2,
     detail: bool = False,
-    device: torch.device | None = None,
+    device: str | torch.device | None = None,
     topk: int = 1,
 ):
     
-    device = device or torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = resolve_device(device)
     resources_dir = Path(__file__).resolve().parent.parent / "resources"
 
     db_date = find_latest_date(date, resources_dir)
