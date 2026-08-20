@@ -3,6 +3,7 @@
 **An ultra-fast and accurate tool for KEGG Orthology (KO) assignment, powered by deep learning.**
 
 **Online version: https://www.genome.jp/tools/deepkoala/**
+**Paper: https://doi.org/10.1093/bib/bbag445**
 
 ### Table of Contents
 * [About the Project](#about-the-project)
@@ -225,12 +226,12 @@ If you use DeepKOALA in your work, please cite:
 
 ```
 @article{deepkoala2026,
-  title = {DeepKOALA: A Fast and Accurate Deep Learning Framework for KEGG Orthology Assignment},
+  title = {DeepKOALA: a scalable deep learning framework for KEGG Orthology assignment},
   author = {Zhaoxi, Yu and Lingjie, Meng and Canh Hao, Nguyen and Hiroshi, Mamitsuka and Minoru, Kanehisa and Hiroyuki Ogata},
   year = {2026},
-  journal = {bioRxiv},
-  doi = {10.64898/2026.01.07.698072}，
-  url = {https://www.biorxiv.org/content/10.64898/2026.01.07.698072v1-0},
+  journal = {Briefings in Bioinformatics},
+  doi = {10.1093/bib/bbag445}，
+  url = {https://doi.org/10.1093/bib/bbag445},
 }
 ```
 
