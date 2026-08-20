@@ -3,6 +3,7 @@
 **An ultra-fast and accurate tool for KEGG Orthology (KO) assignment, powered by deep learning.**
 
 **Online version: https://www.genome.jp/tools/deepkoala/**
+
 **Paper: https://doi.org/10.1093/bib/bbag445**
 
 ### Table of Contents
