@@ -1,0 +1,4 @@
+# Runtime requirements remain in their existing file.
+-r requirements.txt
+
+pytest>=8,<9

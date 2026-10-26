@@ -1,99 +1,74 @@
-import subprocess
 import sys
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+import pandas as pd
+import pytest
 
 from deepkoala import cli
 
-def test_cli_with_fixed_fasta(tmp_path: Path):
-    # 1. Locate the fixed input FASTA file under tests/
-    fasta_file = Path(__file__).parent / "test.fasta"
-    assert fasta_file.exists(), "test.fasta not found in tests/ directory"
 
-    # 2. Define the output CSV path inside pytest's temporary directory
-    out_csv = tmp_path / "out.csv"
+def test_cli_help(run_cli):
+    result = run_cli("--help")
+    assert result.returncode == 0, result.stderr
+    assert "--device" in result.stdout
+    assert "--profiles_dir" in result.stdout
 
-    # 3. Run the CLI using subprocess
-    result = subprocess.run(
-        [
-            "python", "-m", "deepkoala.cli",
-            "-i", str(fasta_file),
-            "-o", str(out_csv),
-            "-m", "full",
-            "-d", "latest",
-        ],
-        capture_output=True,
-        text=True,
+
+@pytest.mark.integration
+@pytest.mark.parametrize("workers", [0, 2])
+def test_cli_cpu_inference_from_another_directory(run_cli, fasta_file, tmp_path, workers):
+    output = tmp_path / "output results 输出" / "predictions.csv"
+    result = run_cli(
+        "-i", fasta_file, "-o", output, "--device", "cpu", "-d", "202501",
+        "--num_workers", workers, "--batch_size", 2, "--detail", "--topk", 2,
     )
-
-    # 4. Validate the execution result
-    assert result.returncode == 0, f"CLI failed: {result.stderr}"
-    assert out_csv.exists(), "Output CSV was not created"
-
-    # Optional: check if CSV file contains expected header
-    csv_text = out_csv.read_text()
-    assert "name" in csv_text
-
-
-def test_cli_help():
-    # This test does not require resources or weights,
-    # it only verifies that the CLI help command works.
-    result = subprocess.run(
-        ["python", "-m", "deepkoala.cli", "-h"],
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 0
-    assert "usage" in result.stdout.lower()
+    assert result.returncode == 0, result.stdout + result.stderr
+    frame = pd.read_csv(output, keep_default_na=False)
+    assert list(frame.columns) == ["name", "predict_label", "probability", "threshold", "annotate"]
+    assert frame["name"].tolist() == ["alpha", "alpha", "beta", "beta", "gamma", "gamma"]
+    assert frame["predict_label"].tolist() == ["K00001", "K00002"] * 3
+    assert frame["probability"].tolist() == pytest.approx([0.75, 0.25] * 3)
+    assert frame["annotate"].tolist() == ["*", ""] * 3
+    assert "Processed 3 sequences, annotated 3." in result.stdout
 
 
-def test_cli_passes_device_to_inference(monkeypatch, tmp_path):
+@pytest.mark.parametrize("args", [[], ["-i", "missing", "-o", "out", "--device", "invalid"]])
+def test_cli_usage_errors(run_cli, args):
+    result = run_cli(*args)
+    assert result.returncode == 2
+    assert "error:" in result.stderr.lower()
+
+
+@pytest.mark.integration
+def test_cli_runtime_error_has_nonzero_exit(run_cli, tmp_path):
+    output = tmp_path / "should-not-exist.csv"
+    result = run_cli("-i", tmp_path / "missing.fasta", "-o", output, "-d", "202501", "--device", "cpu", "-nw", 0)
+    assert result.returncode == 1
+    assert "Error:" in result.stdout + result.stderr
+    assert not output.exists()
+
+
+@pytest.mark.parametrize("multi,device", [(False, "mps"), (True, "cpu")])
+def test_cli_passes_device_to_inference(monkeypatch, tmp_path, multi, device):
     received = {}
 
     def fake_inference(**kwargs):
         received.update(kwargs)
         return {"total": 0, "annotated": 0}
 
-    monkeypatch.setattr(cli, "inference", fake_inference)
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        ["deepkoala", "-i", "input.fasta", "-o", str(tmp_path / "out.csv"), "--device", "mps"],
-    )
-
+    name = "inference_precision" if multi else "inference"
+    monkeypatch.setattr(cli, name, fake_inference)
+    argv = ["deepkoala", "-i", "input.fasta", "-o", str(tmp_path / "out.csv"), "--device", device]
+    if multi:
+        argv += ["--multi", "--profiles_dir", "profiles"]
+    monkeypatch.setattr(sys, "argv", argv)
     cli.main()
+    assert received["device"] == device
 
-    assert received["device"] == "mps"
 
-
-def test_cli_passes_device_to_multi_domain_inference(monkeypatch, tmp_path):
-    received = {}
-
-    def fake_inference_precision(**kwargs):
-        received.update(kwargs)
-        return {"total": 0, "annotated": 0}
-
-    monkeypatch.setattr(cli, "inference_precision", fake_inference_precision)
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        [
-            "deepkoala",
-            "-i",
-            "input.fasta",
-            "-o",
-            str(tmp_path / "out.csv"),
-            "--multi",
-            "--profiles_dir",
-            "profiles",
-            "--device",
-            "cpu",
-        ],
-    )
-
-    cli.main()
-
-    assert received["device"] == "cpu"
+def test_cli_requires_profiles_for_multi_mode(monkeypatch, capsys):
+    # Explicit empty value also overrides any machine-specific local default.
+    monkeypatch.setattr(sys, "argv", ["deepkoala", "-i", "in", "-o", "out", "--multi", "--profiles_dir", ""])
+    with pytest.raises(SystemExit) as error:
+        cli.main()
+    assert error.value.code == 1
+    assert "--profiles_dir must be provided" in capsys.readouterr().out

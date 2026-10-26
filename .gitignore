@@ -37,6 +37,10 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
+# Local validation inputs, model snapshots, raw results and sync backups.
+# GitHub CI uploads only its explicitly named small JUnit XML report.
+/test-results/
+/local-backups/
 htmlcov/
 .tox/
 .nox/

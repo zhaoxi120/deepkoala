@@ -10,7 +10,7 @@ import pandas as pd
 import torch
 import torch.nn.functional as F
 
-from .data import AA_VOCAB
+from .data import AA_VOCAB, _fasta_identifier
 from .model import GRUClassifier
 from .utils import find_latest_date, load_ko_config, resolve_device
 
@@ -71,39 +71,44 @@ def _classify(
 def _run_hmmsearch(hmm_file: Path, seq: str) -> Tuple[int | None, int | None]:
     """Execute ``hmmsearch`` on ``seq`` against ``hmm_file`` and parse bounds."""
 
-    with tempfile.NamedTemporaryFile("w", suffix=".fasta", delete=False) as tmp_fa:
-        tmp_fa.write(">query\n")
-        tmp_fa.write(seq + "\n")
-        fasta_path = tmp_fa.name
-    with tempfile.NamedTemporaryFile("r") as domtbl:
-        cmd = [
-            f"hmmsearch --noali --domtblout {domtbl.name} {hmm_file} {fasta_path}"
-        ]
-        try:
-            subprocess.run(
-                cmd,
-                check=True,
-                shell=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
-        except FileNotFoundError:
-            print("hmmsearch not found; skipping boundary detection.")
-            return None, None
-        except subprocess.CalledProcessError as exc:
-            if exc.returncode == 1:
+    fasta_path = None
+    try:
+        with tempfile.NamedTemporaryFile("w", suffix=".fasta", delete=False) as tmp_fa:
+            fasta_path = Path(tmp_fa.name)
+            tmp_fa.write(">query\n")
+            tmp_fa.write(seq + "\n")
+        with tempfile.NamedTemporaryFile("r") as domtbl:
+            cmd = [
+                f"hmmsearch --noali --domtblout {domtbl.name} {hmm_file} {fasta_path}"
+            ]
+            try:
+                subprocess.run(
+                    cmd,
+                    check=True,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                )
+            except FileNotFoundError:
+                print("hmmsearch not found; skipping boundary detection.")
                 return None, None
-            raise
-        domtbl.seek(0)
-        for line in domtbl:
-            if line.startswith("#"):
-                continue
-            cols = line.strip().split()
-            if len(cols) >= 19:
-                start = int(cols[17])
-                end = int(cols[18])
-                return start, end
-    return None, None
+            except subprocess.CalledProcessError as exc:
+                if exc.returncode == 1:
+                    return None, None
+                raise
+            domtbl.seek(0)
+            for line in domtbl:
+                if line.startswith("#"):
+                    continue
+                cols = line.strip().split()
+                if len(cols) >= 19:
+                    start = int(cols[17])
+                    end = int(cols[18])
+                    return start, end
+        return None, None
+    finally:
+        if fasta_path is not None:
+            fasta_path.unlink(missing_ok=True)
 
 
 def _read_fasta(path: str) -> Iterator[Tuple[str, str]]:
@@ -119,7 +124,7 @@ def _read_fasta(path: str) -> Iterator[Tuple[str, str]]:
             if line.startswith(">"):
                 if seq_id is not None:
                     yield seq_id, "".join(chunks)
-                seq_id = line[1:].split()[0]
+                seq_id = _fasta_identifier(line[1:])
                 chunks = []
             else:
                 chunks.append(line)
