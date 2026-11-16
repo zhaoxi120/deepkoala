@@ -196,20 +196,6 @@ python3 -m deepkoala.cli -i my_proteins.fasta -o results.csv --device mps
 >   --multi --profiles_dir "/path/to/profiles" --detail
 > ```
 
-### KO descriptions
-
-`--description` appends `description` as the **last CSV column** in standard and `--multi` mode. It works with both the simple format and `--detail`, and with every rank emitted by `--topk`. Existing columns, predictions, row ordering, and annotation counts are unchanged. Without this option, the output format remains unchanged and the description file is not required.
-
-* In the simple format, a blank `predict_label` has a blank `description`, including predictions below the confidence threshold.
-* With `--detail`, descriptions are included for all displayed KO candidates, including candidates below the threshold. Rows without a predicted KO remain blank.
-* A single KO receives its definition directly. A compound label such as `K00001+K00002` retains that label and receives a description formatted as `K00001: first definition | K00002: second definition`.
-* A missing single-KO definition leaves the description blank. A missing component of a compound label is represented as `K00002: [description unavailable]`, preserving the other components' definitions.
-* An empty FASTA still produces a CSV header with the final `description` column and no data rows.
-
-Descriptions are loaded only from `resources/<resolved-date>/ko_description.csv`, using the same resolved model date as `--date`. There is no fallback to another resource version. For example, if `--date latest` selects `202510`, `resources/202510/ko_description.csv` is required even when a description file exists under `202502`. A missing file causes an error at startup. Use `--date 202502 --description` for the bundled definitions. For a newer model from [GenomeNet](https://www.genome.jp/ftp/db/deepkoala/), install that release's matching description file in its own `resources/YYYYMM/` directory.
-
-The UTF-8 CSV must have exactly the header `ko,description` (a UTF-8 BOM is accepted), with one nonempty definition per unique single-KO identifier. Malformed tables are rejected before model loading. Missing definitions for KOs in the selected model generate one warning per run; the warning gives a total and a limited list of identifiers, and inference continues. Review the [KEGG data notice](./resources/202502/README.md) before using or redistributing the definitions.
-
 ### Python API
 
 DeepKOALA can also be called programmatically when you want to integrate KO assignment inside a larger Python workflow.
