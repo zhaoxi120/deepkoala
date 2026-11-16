@@ -253,10 +253,17 @@ def test_compound_labels_and_missing_descriptions_reach_output(
     }), encoding="utf-8")
     output = tmp_path / "compound.csv"
 
-    with pytest.warns(UserWarning, match="K99999") as caught:
+    with pytest.warns(UserWarning, match=r"^Missing descriptions for .*K99999") as caught:
         _run(runtime_modules, multi, fasta_file, output, tmp_path, description=True, detail=True, topk=2)
 
-    assert len([warning for warning in caught if issubclass(warning.category, UserWarning)]) == 1
+    # Inference dependencies may emit unrelated UserWarnings as well.
+    missing_description_warnings = [
+        warning for warning in caught
+        if issubclass(warning.category, UserWarning)
+        and str(warning.message).startswith("Missing descriptions for ")
+        and "K99999" in str(warning.message)
+    ]
+    assert len(missing_description_warnings) == 1
     table = pd.read_csv(output, keep_default_na=False)
     expected = f"K00001: {toy_descriptions['K00001']} | K00002: {toy_descriptions['K00002']}"
     assert table["description"].tolist() == [expected, ""] * (2 if multi else 3) + ([""] if multi else [])
