@@ -109,7 +109,7 @@ The pre-trained model file (version February 2025) is already included in this b
 
 Updated models are released at [GenomeNet](https://www.genome.jp/ftp/db/deepkoala/). Please download the files from this site and place them into the `resources` directory. The program will automatically detect and use the latest version.
 
-The bundled `resources/202502/ko_description.csv` provides optional KO definitions for the February 2025 model release. These definitions are KEGG data with separate [terms of use](./resources/README.md), outside the source code's MIT License. Each newer model release must provide its own `resources/YYYYMM/ko_description.csv` to support `--description`.
+The bundled `resources/202502/ko_description.csv` provides optional KO definitions for the February 2025 model release. These definitions are KEGG data with separate [terms of use](./resources/202502/README.md), outside the source code's MIT License. Each newer model release must provide its own `resources/YYYYMM/ko_description.csv` to support `--description`.
 
 ## Usage
 
@@ -208,7 +208,7 @@ python3 -m deepkoala.cli -i my_proteins.fasta -o results.csv --device mps
 
 Descriptions are loaded only from `resources/<resolved-date>/ko_description.csv`, using the same resolved model date as `--date`. There is no fallback to another resource version. For example, if `--date latest` selects `202510`, `resources/202510/ko_description.csv` is required even when a description file exists under `202502`. A missing file causes an error at startup. Use `--date 202502 --description` for the bundled definitions. For a newer model from [GenomeNet](https://www.genome.jp/ftp/db/deepkoala/), install that release's matching description file in its own `resources/YYYYMM/` directory.
 
-The UTF-8 CSV must have exactly the header `ko,description` (a UTF-8 BOM is accepted), with one nonempty definition per unique single-KO identifier. Malformed tables are rejected before model loading. Missing definitions for KOs in the selected model generate one warning per run; the warning gives a total and a limited list of identifiers, and inference continues. Review the [KEGG data notice](./resources/README.md) before using or redistributing the definitions.
+The UTF-8 CSV must have exactly the header `ko,description` (a UTF-8 BOM is accepted), with one nonempty definition per unique single-KO identifier. Malformed tables are rejected before model loading. Missing definitions for KOs in the selected model generate one warning per run; the warning gives a total and a limited list of identifiers, and inference continues. Review the [KEGG data notice](./resources/202502/README.md) before using or redistributing the definitions.
 
 ### Python API
 
@@ -264,4 +264,4 @@ The `ko_description.csv` files distributed with DeepKOALA contain KEGG Orthology
 
 Academic and non-academic use of these data is subject to the applicable KEGG licensing terms. Non-academic use requires an appropriate commercial license. Please refer to the [KEGG Copyright and Disclaimer](https://www.kegg.jp/kegg/legal.html) and [KEGG Commercial Licensing](https://www.pathway.jp/en/licensing.html).
 
-See the [resource data notice](./resources/README.md) for file-specific information.
+See the [resource data notice](./resources/202502/README.md) for file-specific information.

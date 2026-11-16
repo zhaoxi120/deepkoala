@@ -65,7 +65,7 @@ deepkoala/infer_multi.py
 docs/description-validation.md
 docs/release-readiness.md
 docs/testing.md
-resources/README.md
+resources/202502/README.md
 resources/202502/ko_description.csv
 tests/conftest.py
 tests/test_adaptive.py
