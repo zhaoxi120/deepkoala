@@ -183,7 +183,7 @@ python3 -m deepkoala.cli -i my_proteins.fasta -o results.csv --device mps
 * `--multi`: Enables an optional multi-domain validation mode that uses profile HMMs to precisely define the boundaries of each domain (disabled by default).
 * `--profiles_dir` `-pd`: Provides the directory containing the required HMM profiles when multi-domain mode is enabled.
 * `--topk` `-tk`: Emit the top **k** predictions per input sequence (Default: `1`).
-* `--description`: Append a `description` column containing KO definitions. Disabled by default; see [KO descriptions](#ko-descriptions) for resource requirements and output behavior.
+* `--description`: Append a `description` column containing KO definitions.
 
 
 > [!WARNING]
