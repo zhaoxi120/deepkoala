@@ -40,6 +40,11 @@ def main():
         action='store_true',
         help='Use detailed output format (include probabilities, thresholds, and boundaries where applicable)',
     )
+    p.add_argument(
+        '--description',
+        action='store_true',
+        help='Append KO descriptions from ko_description.csv in the selected model version directory',
+    )
     p.add_argument('--topk', '-tk', type=int, default=1, help='Number of top predictions to emit per sequence')
     p.add_argument('--multi', action='store_true', help='Enable multi-domain mode for domain annotations')
     p.add_argument(
@@ -62,6 +67,7 @@ def main():
                 date=args.date,
                 profiles_dir=args.profiles_dir,
                 detail=args.detail,
+                description=args.description,
                 device=args.device,
                 topk=args.topk,
             )
@@ -77,6 +83,7 @@ def main():
                              and args.memory_preset != 'off' else 32)),
                 num_workers=args.num_workers,
                 detail=args.detail,
+                description=args.description,
                 device=args.device,
                 topk=args.topk,
                 memory_preset=args.memory_preset,

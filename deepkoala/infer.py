@@ -16,6 +16,7 @@ from tqdm import tqdm
 from .adaptive import AdaptivePredictor, predict_tensors
 from .batching import PRESETS
 from .data import get_dataloader
+from .descriptions import load_label_descriptions
 from .model import GRUClassifier
 from .utils import find_latest_date, load_ko_config, resolve_device
 
@@ -106,11 +107,13 @@ def inference(
     sort_window: int = 4096,
     max_padded_residues: int | None = None,
     oom_fallback: str = "error",
+    description: bool = False,
 ):
     """Stream predictions to CSV, publishing the output after a successful run.
 
     CUDA uses measured adaptive batches by default; CPU/MPS and preset ``off``
     keep fixed batches. Return per-sequence counts and optional CUDA batch stats.
+    Set ``description`` to append definitions from the selected resource version.
     """
     device = resolve_device(device)
     if memory_preset not in ("auto", "off", *PRESETS):
@@ -134,6 +137,9 @@ def inference(
     weights = resources_dir / db_date / f"weights_{model}.pt"
 
     ko2idx, idx2ko, threshold = load_ko_config(str(ko_cfg))
+    label_descriptions = load_label_descriptions(
+        resources_dir / db_date / "ko_description.csv", ko2idx
+    ) if description else None
     model = GRUClassifier(128, 2, len(ko2idx))
     checkpoint = torch.load(str(weights), map_location="cpu", weights_only=True)
     model.load_state_dict(checkpoint)
@@ -160,7 +166,9 @@ def inference(
 
     total_sequences, annotated_sequences = 0, 0
     columns = ["name", "predict_label", "probability", "threshold", "annotate"]
-    output_columns = columns if detail else columns[:2]
+    output_columns = columns.copy() if detail else columns[:2]
+    if description:
+        output_columns.append("description")
 
     model.eval()
     with torch.no_grad(), _atomic_csv_output(output_path) as output:
@@ -195,8 +203,11 @@ def inference(
             df = pd.DataFrame(rows, columns=columns).round(4)
             if not detail:
                 df.loc[df["annotate"] != "*", "predict_label"] = pd.NA
-                df = df[output_columns]
-            df.to_csv(output, index=False, header=False)
+            if description:
+                df["description"] = df["predict_label"].map(
+                    label_descriptions.get, na_action="ignore"
+                ).fillna("")
+            df[output_columns].to_csv(output, index=False, header=False)
     summary = {
         "total": total_sequences,
         "annotated": annotated_sequences,

@@ -1,5 +1,6 @@
 """Self-contained test resources; never load the user's installed models."""
 
+import csv
 import json
 import math
 import os
@@ -53,7 +54,15 @@ def bounded_cpu_threads():
 
 
 @pytest.fixture(scope="session")
-def toy_resources(tmp_path_factory):
+def toy_descriptions():
+    return {
+        "K00001": 'Synthetic enzyme, "alpha"; 蛋白\nsecond line',
+        "K00002": "Synthetic beta activity [EC:0.0.0.0]",
+    }
+
+
+@pytest.fixture(scope="session")
+def toy_resources(tmp_path_factory, toy_descriptions):
     resources = tmp_path_factory.mktemp("synthetic-models") / "resources"
     version = resources / "202501"
     version.mkdir(parents=True)
@@ -61,6 +70,10 @@ def toy_resources(tmp_path_factory):
         "K00001": {"index": 0, "threshold": 0.7},
         "K00002": {"index": 1, "threshold": 0.3},
     }
+    with (version / "ko_description.csv").open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(["ko", "description"])
+        writer.writerows(toy_descriptions.items())
     # A real GRU checkpoint with known output, not biological weights.
     with torch.random.fork_rng(devices=[]):
         torch.manual_seed(7)

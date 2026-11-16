@@ -109,6 +109,8 @@ The pre-trained model file (version February 2025) is already included in this b
 
 Updated models are released at [GenomeNet](https://www.genome.jp/ftp/db/deepkoala/). Please download the files from this site and place them into the `resources` directory. The program will automatically detect and use the latest version.
 
+The bundled `resources/202502/ko_description.csv` provides optional KO definitions for the February 2025 model release. These definitions are KEGG data with separate [terms of use](./resources/README.md), outside the source code's MIT License. Each newer model release must provide its own `resources/YYYYMM/ko_description.csv` to support `--description`.
+
 ## Usage
 
 ### Basic Usage
@@ -131,6 +133,12 @@ To annotate metagenomic genes using the specialized model and get a detailed out
 
 ```bash
 python3 -m deepkoala.cli -i metagenome.fasta -o detailed_results.csv --model frag --detail
+```
+
+To append KO definitions using the bundled February 2025 resources:
+
+```bash
+python3 -m deepkoala.cli -i my_proteins.fasta -o results.csv --date 202502 --description
 ```
 
 On an Apple Silicon Mac with an MPS-enabled PyTorch build, you can explicitly run inference on the Apple GPU:
@@ -175,6 +183,7 @@ python3 -m deepkoala.cli -i my_proteins.fasta -o results.csv --device mps
 * `--multi`: Enables an optional multi-domain validation mode that uses profile HMMs to precisely define the boundaries of each domain (disabled by default).
 * `--profiles_dir` `-pd`: Provides the directory containing the required HMM profiles when multi-domain mode is enabled.
 * `--topk` `-tk`: Emit the top **k** predictions per input sequence (Default: `1`).
+* `--description`: Append a `description` column containing KO definitions. Disabled by default; see [KO descriptions](#ko-descriptions) for resource requirements and output behavior.
 
 
 > [!WARNING]
@@ -186,6 +195,20 @@ python3 -m deepkoala.cli -i my_proteins.fasta -o results.csv --device mps
 > python -m deepkoala.cli -i proteins.fasta -o domains.csv \
 >   --multi --profiles_dir "/path/to/profiles" --detail
 > ```
+
+### KO descriptions
+
+`--description` appends `description` as the **last CSV column** in standard and `--multi` mode. It works with both the simple format and `--detail`, and with every rank emitted by `--topk`. Existing columns, predictions, row ordering, and annotation counts are unchanged. Without this option, the output format remains unchanged and the description file is not required.
+
+* In the simple format, a blank `predict_label` has a blank `description`, including predictions below the confidence threshold.
+* With `--detail`, descriptions are included for all displayed KO candidates, including candidates below the threshold. Rows without a predicted KO remain blank.
+* A single KO receives its definition directly. A compound label such as `K00001+K00002` retains that label and receives a description formatted as `K00001: first definition | K00002: second definition`.
+* A missing single-KO definition leaves the description blank. A missing component of a compound label is represented as `K00002: [description unavailable]`, preserving the other components' definitions.
+* An empty FASTA still produces a CSV header with the final `description` column and no data rows.
+
+Descriptions are loaded only from `resources/<resolved-date>/ko_description.csv`, using the same resolved model date as `--date`. There is no fallback to another resource version. For example, if `--date latest` selects `202510`, `resources/202510/ko_description.csv` is required even when a description file exists under `202502`. A missing file causes an error at startup. Use `--date 202502 --description` for the bundled definitions. For a newer model from [GenomeNet](https://www.genome.jp/ftp/db/deepkoala/), install that release's matching description file in its own `resources/YYYYMM/` directory.
+
+The UTF-8 CSV must have exactly the header `ko,description` (a UTF-8 BOM is accepted), with one nonempty definition per unique single-KO identifier. Malformed tables are rejected before model loading. Missing definitions for KOs in the selected model generate one warning per run; the warning gives a total and a limited list of identifiers, and inference continues. Review the [KEGG data notice](./resources/README.md) before using or redistributing the definitions.
 
 ### Python API
 
@@ -214,7 +237,8 @@ hits = annotate_precision(
 )
 ```
 
-* `deepkoala.infer.inference` mirrors the CLI options (`--model`, `--date`, `--batch_size`, `--num_workers`, `--device`, `--detail`, `--topk`) and writes the results to `output_path`. It returns a summary dictionary with the total and annotated sequence counts.
+* `deepkoala.infer.inference` mirrors the CLI options (`--model`, `--date`, `--batch_size`, `--num_workers`, `--device`, `--detail`, `--topk`, `--description`) and writes the results to `output_path`. Pass `description=True` to append KO definitions. It returns a summary dictionary with the total and annotated sequence counts.
+* `deepkoala.infer_multi.inference_precision` also accepts `description=True` for CSV output, using the same resource and formatting rules.
 * `deepkoala.infer_multi.annotate_precision` returns a list of domain hits for a single sequence, each including the KO, probability, threshold, and domain boundaries when available.
 
 ## Citation
@@ -232,6 +256,12 @@ If you use DeepKOALA in your work, please cite:
 }
 ```
 
-## License
+## License and Third-Party Data
 
-This software is released under the [MIT License](./LICENSE).
+DeepKOALA source code is released under the [MIT License](./LICENSE).
+
+The `ko_description.csv` files distributed with DeepKOALA contain KEGG Orthology (KO) definitions from KEGG. These data are copyrighted by Kanehisa Laboratories and are not covered by the MIT License.
+
+Academic and non-academic use of these data is subject to the applicable KEGG licensing terms. Non-academic use requires an appropriate commercial license. Please refer to the [KEGG Copyright and Disclaimer](https://www.kegg.jp/kegg/legal.html) and [KEGG Commercial Licensing](https://www.pathway.jp/en/licensing.html).
+
+See the [resource data notice](./resources/README.md) for file-specific information.

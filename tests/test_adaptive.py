@@ -408,7 +408,10 @@ def _mock_adaptive_inference_on_cpu(monkeypatch, infer, *, failure_index=None):
 
 
 @pytest.mark.integration
-def test_inference_after_sort_and_oom_writes_every_row_once_in_original_order(monkeypatch, cuda_stub, runtime_modules, tmp_path):
+@pytest.mark.parametrize("description", [False, True])
+def test_inference_after_sort_and_oom_writes_every_row_once_in_original_order(
+    monkeypatch, cuda_stub, runtime_modules, tmp_path, toy_descriptions, description
+):
     infer, _ = runtime_modules
     predictors = _mock_adaptive_inference_on_cpu(monkeypatch, infer)
     source = tmp_path / "duplicates.fasta"
@@ -417,11 +420,17 @@ def test_inference_after_sort_and_oom_writes_every_row_once_in_original_order(mo
     output = tmp_path / "predictions.csv"
     files_before = set(tmp_path.iterdir())
     stats = infer.inference(str(source), str(output), date="202501", device="cuda", batch_size=4,
-                            sort_window=5, detail=True, topk=2, num_workers=0)
+                            sort_window=5, detail=True, topk=2, num_workers=0,
+                            description=description)
     frame = pd.read_csv(output, keep_default_na=False)
     assert frame["name"].tolist() == [name for name in names for _ in range(2)]
     assert frame["predict_label"].tolist() == ["K00001", "K00002"] * 7
     assert frame["probability"].tolist() == pytest.approx([0.75, 0.25] * 7)
+    if description:
+        assert frame.columns[-1] == "description"
+        assert frame["description"].tolist() == list(toy_descriptions.values()) * 7
+    else:
+        assert "description" not in frame.columns
     assert stats["total"] == stats["annotated"] == 7
     assert stats["batching"]["oom_retries"] == predictors[0].oom_retries == 1
     assert set(tmp_path.iterdir()) == files_before | {output}

@@ -13,6 +13,7 @@ import torch.nn.functional as F
 from .data import AA_VOCAB, _fasta_identifier
 from .model import GRUClassifier
 from .utils import find_latest_date, load_ko_config, resolve_device
+from .descriptions import load_label_descriptions
 
 __all__ = [
     "annotate_precision",
@@ -268,6 +269,7 @@ def inference_precision(
     detail: bool = False,
     device: str | torch.device | None = None,
     topk: int = 1,
+    description: bool = False,
 ) -> Dict[str, object]:
     """Run multi-domain inference on ``input_path`` and write CSV to ``output_path``."""
 
@@ -276,6 +278,14 @@ def inference_precision(
         raise ValueError("profiles_dir must be provided when running multi-domain inference")
     if topk < 1:
         raise ValueError("topk must be >= 1")
+    label_descriptions = None
+    if description:
+        resources_dir = Path(__file__).resolve().parent.parent / "resources"
+        date = find_latest_date(date, str(resources_dir))
+        ko2idx, _, _ = load_ko_config(str(resources_dir / date / f"ko_config_{model}.json"))
+        label_descriptions = load_label_descriptions(
+            resources_dir / date / "ko_description.csv", ko2idx
+        )
     classifier, _, idx2ko, thresholds = _load_model(model, date, device)
     hmm_dir = Path(profiles_dir)
 
@@ -322,6 +332,11 @@ def inference_precision(
     if not detail:
         df.loc[df["annotate"] != "*", "predict_label"] = pd.NA
         df = df[["name", "predict_label"]]
+
+    if description:
+        df["description"] = df["predict_label"].map(
+            label_descriptions.get, na_action="ignore"
+        ).fillna("")
 
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(output_path, index=False)

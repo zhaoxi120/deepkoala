@@ -93,6 +93,16 @@ and counts with synthetic models, domain-boundary logic with controlled HMMER
 responses. Synthetic checkpoints exercise the
 code path without requiring the production `resources/` directory.
 
+`tests/test_random_inference.py` also generates nine protein sequences with a
+fixed seed (20261116), using the 20 standard amino acids and unsorted lengths
+from 1 to 129 residues, including 49, 50, and 51. Four CLI smoke tests cover
+`full`/`frag` and standard/multi-domain inference; each compares output with and
+without `--description`. They check unchanged predictions, row order and summary
+counts, correct description mapping, batch padding, and the multi-domain minimum
+length boundary. They use synthetic checkpoints and definitions, do not evaluate
+threshold calibration or biological accuracy, and use an empty profile directory
+in multi-domain mode rather than invoking real HMMER.
+
 The supported CI usage path is a source checkout, runtime dependencies installed
 from `requirements.txt`, and `python -m deepkoala.cli`. Wheel construction,
 installation, metadata and packaged-resource checks have been removed from the

@@ -11,6 +11,7 @@ def test_cli_help(run_cli):
     assert result.returncode == 0, result.stderr
     assert "--device" in result.stdout
     assert "--profiles_dir" in result.stdout
+    assert "--description" in result.stdout
 
 
 @pytest.mark.integration
