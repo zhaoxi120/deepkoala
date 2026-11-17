@@ -1,0 +1,88 @@
+name: Prerelease
+
+on:
+  push:
+    tags: ['v*-beta']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out release metadata
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            docs/releases
+
+      - name: Check tag, package version, and release notes
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          import re
+          import tomllib
+
+          tag = os.environ["RELEASE_TAG"]
+          match = re.fullmatch(r"v([0-9]+\.[0-9]+(?:\.[0-9]+)?)-beta", tag)
+          if match is None:
+              raise SystemExit(f"Unsupported prerelease tag: {tag!r}")
+
+          expected_version = f"{match.group(1)}b1"
+          with Path("pyproject.toml").open("rb") as handle:
+              version = tomllib.load(handle)["project"]["version"]
+          if version != expected_version:
+              raise SystemExit(
+                  f"Tag {tag!r} requires package version {expected_version!r}; "
+                  f"found {version!r}"
+              )
+
+          notes = Path("docs/releases") / f"{tag}.md"
+          if not notes.is_file() or not notes.read_text(encoding="utf-8").strip():
+              raise SystemExit(f"Missing or empty release notes: {notes}")
+          print(f"Validated {tag}: package {version}, notes {notes}")
+          PY
+
+  checks:
+    name: Compatibility checks
+    needs: validate
+    uses: ./.github/workflows/tests.yml
+
+  publish:
+    name: Publish GitHub prerelease
+    needs: [validate, checks]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Check out release notes
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            docs/releases
+
+      - name: Create prerelease from the tested tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --prerelease \
+            --latest=false \
+            --title "DeepKOALA $RELEASE_TAG" \
+            --notes-file "docs/releases/$RELEASE_TAG.md"

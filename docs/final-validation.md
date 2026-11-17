@@ -58,7 +58,7 @@ Windows/macOS 实际通过情况需要对应工作流结果；本地 Linux 检�
 回退检查显式设置 `max_padded_residues=1`，触发的是单条序列超预算，
 验证了懒加载 CPU 模型的实际执行；不是重新制造真实 CUDA OOM。
 GPU 测试前后均无计算进程、显存使用为 0 MiB，未提交 PBS。
-原始记录见本地 [小样本报告](../test-results/final-cleanup/real-model-smoke/REPORT.md)。
+原始记录见本地 `test-results/final-cleanup/real-model-smoke/REPORT.md`。
 
 ## 结果范围
 

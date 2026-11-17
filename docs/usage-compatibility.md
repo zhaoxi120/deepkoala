@@ -111,7 +111,7 @@ FASTA 标识符现在统一取 `>` 后第一个以空白分隔的字段，空格
 | `--multi`、显式空 profiles 目录、详细输出 | 与原版一致；未覆盖真实 HMMER 边界搜索 |
 
 这些小规模检查验证命令与输出兼容性，不衡量吞吐；不同规模与设备的性能应以相应基准结果为准。
-原始结果保存在 [CPU CLI 验证记录](../test-results/usage-compatibility/cpu-cli-results.json)。
+原始结果保存在 `test-results/usage-compatibility/cpu-cli-results.json`。
 文件权限回归 **8 项通过**，覆盖已有 `0640/0444`、新文件正常创建权限、失败时保留原文件、
 独立进程中的 `umask 077/002`，以及缺少 `os.fchmod` 时的兼容分支。
-结果保存在 [文件权限测试记录](../test-results/usage-compatibility/output-permissions.xml)。
+结果保存在 `test-results/usage-compatibility/output-permissions.xml`。

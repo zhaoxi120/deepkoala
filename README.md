@@ -11,8 +11,8 @@
 * [Performance](#performance)
 * [Installation](#installation)
 * [Usage](#usage)
-* [How to Cite](#how-to-cite)
-* [License](#license)
+* [How to Cite](#citation)
+* [License](#license-and-third-party-data)
 
 ## About the Project
 **DeepKOALA** is a high-performance deep learning-based tool for rapid protein function annotation according to the **KEGG Orthology (KO)** system. By framing KO assignment as an open-set recognition problem, it can effectively distinguish between known and unknown functional sequences, thereby reducing false-positive annotations.
@@ -234,10 +234,10 @@ If you use DeepKOALA in your work, please cite:
 ```
 @article{deepkoala2026,
   title = {DeepKOALA: a scalable deep learning framework for KEGG Orthology assignment},
-  author = {Zhaoxi, Yu and Lingjie, Meng and Canh Hao, Nguyen and Hiroshi, Mamitsuka and Minoru, Kanehisa and Hiroyuki Ogata},
+  author = {Yu, Zhaoxi and Meng, Lingjie and Nguyen, Canh Hao and Mamitsuka, Hiroshi and Kanehisa, Minoru and Ogata, Hiroyuki},
   year = {2026},
   journal = {Briefings in Bioinformatics},
-  doi = {10.1093/bib/bbag445}，
+  doi = {10.1093/bib/bbag445},
   url = {https://doi.org/10.1093/bib/bbag445},
 }
 ```

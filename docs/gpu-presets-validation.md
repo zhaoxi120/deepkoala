@@ -81,7 +81,7 @@ CUDA 报告实际可见容量为 79.25 GiB。
   完成 2 条输入、6 行 top-k 输出，日志与 CSV 计数一致。
 
 结束时已确认 A100 无残留计算进程、显存占用为 0 MiB。详见
-[`GPU 原始测试报告`](../test-results/gpu-presets/REPORT.md)。
+`test-results/gpu-presets/REPORT.md`。
 
 ## 16384 aa 补充压力测试
 
@@ -130,7 +130,7 @@ CUDA 报告实际可见容量为 79.25 GiB。
 最终每批 1 条全部完成，与 GPU 单条参考的概率一致；单条在 40 MiB 限额下触发 1 次 OOM，
 成功回退 CPU。这些极低限额只用于故障注入，不代表 2 GiB 预设下需要单条运行。
 
-完整补充结果保存在 [`test-results/gpu-presets-16384/`](../test-results/gpu-presets-16384/)。
+完整补充结果保存在 `test-results/gpu-presets-16384/`。
 复现正常七档与回退验证：
 
 ```bash
@@ -159,8 +159,8 @@ env PATH=/bio/user/ideas2/.conda/envs/deepmicroclass/bin:$PATH \
 ```
 
 机器可读结果、输入、CSV、日志、源码哈希和 GPU 验证脚本位于
-[`test-results/gpu-presets/`](../test-results/gpu-presets/)，完整回归报告为
-[`test-results/presets-full.xml`](../test-results/presets-full.xml)。
+`test-results/gpu-presets/`，完整回归报告为
+`test-results/presets-full.xml`。
 
 ## 使用
 

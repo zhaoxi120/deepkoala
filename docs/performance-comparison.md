@@ -59,7 +59,7 @@ API 测量先执行相同的小 GRU 预热，再单独计时 `inference()`，包
 没有显示端到端提速；每版仅运行一次，不据此判断稳定性能退化或提升。
 PSS 为每 0.25 秒采样的峰值，可能漏掉瞬时峰值；本轮未测 GPU allocator 峰值。
 原始输入、执行脚本、日志和输出只保留在本地
-[`local-large-once/REPORT.md`](../test-results/local-large-once/REPORT.md)，不作为 CI 输入或上传附件。
+`test-results/local-large-once/REPORT.md`，不作为 CI 输入或上传附件。
 
 ## 预热后推理阶段
 
@@ -143,6 +143,6 @@ python -m deepkoala.cli -i proteins.fasta -o results.csv --memory-preset off
 这与上述额外 GPU 详细概率检查的失败分别记录，不能合并宣称“所有测试全部通过”。
 
 原始性能数据、源码与资源哈希、输入、CSV、计时及复现脚本：
-[`performance-window4096/REPORT.md`](../test-results/performance-window4096/REPORT.md)。
-读取内存报告：[`window-count-only-memory/REPORT.md`](../test-results/window-count-only-memory/REPORT.md)。
-完整回归结果：[`window-count-only-final.xml`](../test-results/window-count-only-final.xml)。
+`test-results/performance-window4096/REPORT.md`。
+读取内存报告：`test-results/window-count-only-memory/REPORT.md`。
+完整回归结果：`test-results/window-count-only-final.xml`。

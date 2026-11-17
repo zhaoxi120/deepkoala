@@ -13,7 +13,7 @@ FASTA, checkpoints, process logs and measurements stay in the ignored
 `test-results/` directory. Do not upload these as CI artifacts or make CI depend
 on their availability. Future performance investigations can be run locally when
 needed; they are not recurring CI requirements.
-Links into `test-results/` in validation reports refer to locally retained records,
+Paths into `test-results/` in validation reports refer to locally retained records,
 not files published in the GitHub repository or workflow artifacts.
 The [final cleanup validation](final-validation.md) records the cleanup checks;
 the subsequent [known-issue fixes](known-issue-fixes.md) record the FASTA ID and
@@ -115,11 +115,13 @@ require separately recorded model versions, data provenance, and reference resul
 
 ## Existing script constraints
 
-All strict expected failures carry the `known_issue` marker. The current list is:
+There are currently no tests marked as strict expected failures. Historical
+validation reports retain the expected-failure results recorded on their dates.
 
-| Existing defect | Regression coverage | When it runs |
-| --- | --- | --- |
-| HMM profile paths containing spaces are not quoted in the shell command | `test_hmmer.py`: execute real HMMER using a profile path containing spaces | Explicit `--run-hmmer` only |
+HMMER is invoked with an argument list, so profile and temporary-file paths with
+spaces or shell metacharacters are passed literally. Controlled subprocess tests
+cover these paths and cleanup; `test_hmmer.py` includes an ordinary required
+profile-path-with-spaces regression when `--run-hmmer` is explicitly enabled.
 
 The former FASTA-ID mismatch and HMMER temporary-FASTA cleanup failures are now
 fixed and run as ordinary required tests. ID checks cover eager, streaming,
@@ -127,7 +129,7 @@ adaptive-window and multi-domain readers with spaces/tabs and empty headers.
 Cleanup checks cover hits, no hits, missing executables, handled/non-handled
 process errors and malformed coordinates. Their `xfail` markers were removed.
 After removal of the wheel tests, the lightweight CI selection has no expected
-failures. The opt-in HMMER path-with-spaces test remains a strict expected failure.
+failures. The opt-in HMMER path-with-spaces test also has no `xfail` marker.
 
 The inference code currently locates model files in `resources/YYYYMM/` next to
 the package directory. Use the documented source-checkout layout and install
@@ -136,10 +138,10 @@ lookup or add runtime dependencies/model resources to the wheel.
 
 Real HMMER tests for a normal hit and for zero hits are not marked as expected
 failures on Windows. They require the subprocess to exit successfully as well as
-return the expected coordinates. Windows may expose the existing implementation's
-attempt to let HMMER write to an already-open temporary file. Such an error must
-fail an explicitly requested run; a process failure must not be counted as a
-successful zero-hit result.
+return the expected coordinates. The temporary input is closed before HMMER
+runs, and HMMER creates its own output file. Any process failure must fail an
+explicitly requested test run; it must not be counted as a successful zero-hit
+result. Real HMMER compatibility on a platform still requires a recorded run.
 
 The two-worker DataLoader check requires working subprocess creation and local
 interprocess communication, including Unix-domain sockets on POSIX. A sandbox

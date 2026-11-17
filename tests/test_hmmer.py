@@ -1,12 +1,9 @@
 """HMMER parsing contracts, plus opt-in tests of the real external program."""
 
-import io
 from pathlib import Path
 import random
-import shlex
 import shutil
 import subprocess
-import sys
 
 import pytest
 
@@ -24,34 +21,33 @@ def domtbl_row(start=7, end=53):
 def controlled_hmmsearch(monkeypatch, tmp_path):
     """Simulate only process output; parsing and FASTA creation remain real.
 
-    StringIO supplies the domtbl stream without reopening a live temporary
-    file. Real-tool tests below exercise that platform-dependent file access.
+    The fake child writes the output file itself. Production still creates,
+    closes, reads, and removes its real temporary files.
     """
-    real_temporary_file = infer_multi.tempfile.NamedTemporaryFile
-    state = {"output": "", "error": None, "calls": [], "fasta_paths": [], "fasta_contents": []}
+    real_temporary_directory = infer_multi.tempfile.TemporaryDirectory
+    state = {"output": "", "error": None, "calls": [], "fasta_paths": [],
+             "domtbl_paths": [], "fasta_contents": []}
 
-    def temporary_file(mode, *args, **kwargs):
-        if mode == "r":
-            table = io.StringIO(state["output"])
-            table.name = str(tmp_path / "domtbl.txt")
-            return table
+    def temporary_directory(*args, **kwargs):
         kwargs["dir"] = tmp_path
-        handle = real_temporary_file(mode, *args, **kwargs)
-        state["fasta_paths"].append(Path(handle.name))
-        return handle
+        return real_temporary_directory(*args, **kwargs)
 
     def run(command, **kwargs):
         state["calls"].append((command, kwargs))
-        state["fasta_contents"].append(state["fasta_paths"][-1].read_text())
+        fasta_path = Path(command[-1])
+        domtbl_path = Path(command[command.index("--domtblout") + 1])
+        state["fasta_paths"].append(fasta_path)
+        state["domtbl_paths"].append(domtbl_path)
+        state["fasta_contents"].append(fasta_path.read_text(encoding="utf-8"))
+        assert not domtbl_path.exists()
         if state["error"] is not None:
             raise state["error"]
+        domtbl_path.write_text(state["output"], encoding="utf-8")
         return subprocess.CompletedProcess(command, 0)
 
-    monkeypatch.setattr(infer_multi.tempfile, "NamedTemporaryFile", temporary_file)
+    monkeypatch.setattr(infer_multi.tempfile, "TemporaryDirectory", temporary_directory)
     monkeypatch.setattr(infer_multi.subprocess, "run", run)
-    yield state
-    for path in state["fasta_paths"]:
-        path.unlink(missing_ok=True)
+    return state
 
 
 def test_hmmsearch_reads_alignment_not_envelope_or_profile_coordinates(controlled_hmmsearch, tmp_path):
@@ -63,6 +59,21 @@ def test_hmmsearch_reads_alignment_not_envelope_or_profile_coordinates(controlle
     assert len(state["calls"]) == 1
     _, kwargs = state["calls"][0]
     assert kwargs["check"] is True
+
+
+def test_hmmsearch_passes_literal_paths_without_a_shell(controlled_hmmsearch, tmp_path):
+    state = controlled_hmmsearch
+    state["output"] = domtbl_row(7, 53)
+    profile = tmp_path / "profile with spaces;literal$(text).hmm"
+
+    assert infer_multi._run_hmmsearch(profile, "A" * 60) == (7, 53)
+
+    command, kwargs = state["calls"][0]
+    assert command == ["hmmsearch", "--noali", "--domtblout",
+                       str(state["domtbl_paths"][0]), str(profile),
+                       str(state["fasta_paths"][0])]
+    assert not kwargs.get("shell", False)
+    assert kwargs["stdout"] == subprocess.DEVNULL
 
 
 @pytest.mark.parametrize("output", ["", "# no hits\n", "\n# comment\nnot a domain row\n"])
@@ -106,7 +117,6 @@ def test_non_one_process_failures_are_not_hidden(controlled_hmmsearch, tmp_path,
 
 
 def test_missing_executable_exception_reports_fallback(controlled_hmmsearch, tmp_path, capsys):
-    # The shell may instead report 127; that separate path must propagate.
     controlled_hmmsearch["error"] = FileNotFoundError("hmmsearch")
 
     assert infer_multi._run_hmmsearch(tmp_path / "profile.hmm", "A" * 60) == (None, None)
@@ -125,7 +135,7 @@ def test_missing_executable_exception_reports_fallback(controlled_hmmsearch, tmp
     ],
     ids=["hit", "no-hit", "missing-executable", "exit-one", "process-error", "parse-error"],
 )
-def test_hmmsearch_removes_temporary_fasta_on_success_and_failure(
+def test_hmmsearch_removes_temporary_files_on_success_and_failure(
     controlled_hmmsearch, tmp_path, output, error, expected_error
 ):
     controlled_hmmsearch["output"] = output
@@ -138,6 +148,8 @@ def test_hmmsearch_removes_temporary_fasta_on_success_and_failure(
 
     assert controlled_hmmsearch["fasta_paths"]
     assert not any(path.exists() for path in controlled_hmmsearch["fasta_paths"])
+    assert not any(path.exists() for path in controlled_hmmsearch["domtbl_paths"])
+    assert not any(path.parent.exists() for path in controlled_hmmsearch["fasta_paths"])
 
 
 @pytest.fixture
@@ -162,19 +174,9 @@ def real_hmm_profile(tmp_path, monkeypatch):
     returncodes = []
 
     def run_with_available_executable(command, **kwargs):
-        # Accept both the repository's PATH invocation and this working
-        # checkout's cluster-specific executable. Replace ONLY the executable;
-        # leave all arguments and their quoting intact so path bugs stay visible.
-        if kwargs.get("shell"):
-            shell_command = command[0] if isinstance(command, list) else command
-            executable, delimiter, arguments = shell_command.partition(" --noali ")
-            if delimiter and Path(executable).name in {"hmmsearch", "hmmsearch.exe"}:
-                quoted = (
-                    subprocess.list2cmdline([executables["hmmsearch"]])
-                    if sys.platform == "win32"
-                    else shlex.quote(executables["hmmsearch"])
-                )
-                command = [quoted + delimiter + arguments]
+        # Replace only the executable; keep all production argument boundaries.
+        assert not kwargs.get("shell", False)
+        command = [executables["hmmsearch"], *command[1:]]
         kwargs.setdefault("timeout", 60)
         try:
             completed = original_run(command, **kwargs)
@@ -209,16 +211,14 @@ def test_real_hmmsearch_reports_zero_hits(real_hmm_profile):
 
 
 @pytest.mark.hmmer
-@pytest.mark.known_issue
-@pytest.mark.xfail(
-    strict=True,
-    raises=(AssertionError, subprocess.CalledProcessError),
-    reason="Known limitation: shell command does not quote HMM profile paths containing spaces",
-)
-def test_real_hmmsearch_accepts_profile_path_with_spaces(real_hmm_profile, tmp_path):
+def test_real_hmmsearch_accepts_profile_path_with_spaces(real_hmm_profile, tmp_path, monkeypatch):
     profile, sequence, returncodes = real_hmm_profile
     spaced_profile = tmp_path / "profile with spaces.hmm"
     shutil.copyfile(profile, spaced_profile)
+    spaced_temporary_directory = tmp_path / "temporary files with spaces"
+    spaced_temporary_directory.mkdir()
+    monkeypatch.setattr(infer_multi.tempfile, "tempdir", str(spaced_temporary_directory))
 
     assert infer_multi._run_hmmsearch(spaced_profile, sequence) == (1, len(sequence))
     assert returncodes == [0]
+    assert not list(spaced_temporary_directory.iterdir())

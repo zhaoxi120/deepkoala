@@ -72,32 +72,30 @@ def _classify(
 def _run_hmmsearch(hmm_file: Path, seq: str) -> Tuple[int | None, int | None]:
     """Execute ``hmmsearch`` on ``seq`` against ``hmm_file`` and parse bounds."""
 
-    fasta_path = None
-    try:
-        with tempfile.NamedTemporaryFile("w", suffix=".fasta", delete=False) as tmp_fa:
-            fasta_path = Path(tmp_fa.name)
-            tmp_fa.write(">query\n")
-            tmp_fa.write(seq + "\n")
-        with tempfile.NamedTemporaryFile("r") as domtbl:
-            cmd = [
-                f"hmmsearch --noali --domtblout {domtbl.name} {hmm_file} {fasta_path}"
-            ]
-            try:
-                subprocess.run(
-                    cmd,
-                    check=True,
-                    shell=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
-            except FileNotFoundError:
-                print("hmmsearch not found; skipping boundary detection.")
+    with tempfile.TemporaryDirectory(prefix="deepkoala-hmmer-") as directory:
+        fasta_path = Path(directory) / "query.fasta"
+        domtbl_path = Path(directory) / "domains.tbl"
+        fasta_path.write_text(">query\n" + seq + "\n", encoding="utf-8")
+        # Pass paths as arguments, and let HMMER create the output after the
+        # input is closed. This also avoids reopening a live temporary file on
+        # Windows and treats spaces/shell metacharacters as literal path text.
+        cmd = ["hmmsearch", "--noali", "--domtblout", str(domtbl_path),
+               str(hmm_file), str(fasta_path)]
+        try:
+            subprocess.run(
+                cmd,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+            )
+        except FileNotFoundError:
+            print("hmmsearch not found; skipping boundary detection.")
+            return None, None
+        except subprocess.CalledProcessError as exc:
+            if exc.returncode == 1:
                 return None, None
-            except subprocess.CalledProcessError as exc:
-                if exc.returncode == 1:
-                    return None, None
-                raise
-            domtbl.seek(0)
+            raise
+        with domtbl_path.open(encoding="utf-8") as domtbl:
             for line in domtbl:
                 if line.startswith("#"):
                     continue
@@ -107,9 +105,6 @@ def _run_hmmsearch(hmm_file: Path, seq: str) -> Tuple[int | None, int | None]:
                     end = int(cols[18])
                     return start, end
         return None, None
-    finally:
-        if fasta_path is not None:
-            fasta_path.unlink(missing_ok=True)
 
 
 def _read_fasta(path: str) -> Iterator[Tuple[str, str]]:
